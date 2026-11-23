@@ -21,6 +21,11 @@ const sizes: Record<Size, string> = {
   lg: "h-12 px-7 text-base",
 };
 
+/** Button classes, for real <button> elements that should match the link buttons. */
+export function buttonClass(variant: Variant = "primary", size: Size = "md", className?: string): string {
+  return cn(base, variants[variant], sizes[size], className);
+}
+
 type ButtonProps = ComponentProps<typeof Link> & {
   variant?: Variant;
   size?: Size;
@@ -28,5 +33,5 @@ type ButtonProps = ComponentProps<typeof Link> & {
 
 /** A link styled as a button. Every CTA on the marketing site navigates somewhere. */
 export function Button({ variant = "primary", size = "md", className, ...props }: ButtonProps) {
-  return <Link className={cn(base, variants[variant], sizes[size], className)} {...props} />;
+  return <Link className={buttonClass(variant, size, className)} {...props} />;
 }

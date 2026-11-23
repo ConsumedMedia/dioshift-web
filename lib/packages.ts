@@ -50,3 +50,12 @@ export function getPackageById(id: string | null | undefined): Package | undefin
   if (!id) return undefined;
   return PACKAGES.find((p) => p.id === id);
 }
+
+/** The package flagged "Most Popular" (falls back to the first package). */
+export const POPULAR_PACKAGE: Package = PACKAGES.find((p) => p.popular) ?? PACKAGES[0];
+
+/** Smallest and largest packages, by impressions. */
+export function getPackageRange(): { min: Package; max: Package } {
+  const sorted = [...PACKAGES].sort((a, b) => a.impressions - b.impressions);
+  return { min: sorted[0], max: sorted[sorted.length - 1] };
+}

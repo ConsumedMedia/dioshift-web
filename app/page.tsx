@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { AdRequirements } from "@/components/AdRequirements";
 import { TvMockup } from "@/components/TvMockup";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -136,12 +137,6 @@ const steps = [
     title: "We target and launch",
     body: "We set up your targeting, place your ad across streaming apps and devices, and get it running.",
   },
-];
-
-const specs = [
-  { label: "Length", value: ":30 seconds" },
-  { label: "Resolution", value: "1080p", note: "1920 × 1080" },
-  { label: "File type", value: "MP4", note: "Recommended" },
 ];
 
 /* ---------- Page ---------- */
@@ -353,37 +348,6 @@ function Pricing() {
       <p className="mt-10 text-center text-sm text-text-dim">
         All plans billed monthly. No long-term contract. <span className="whitespace-nowrap">30-day</span> notice required to cancel.
       </p>
-    </Section>
-  );
-}
-
-function AdRequirements() {
-  return (
-    <Section className="pt-0 sm:pt-0">
-      <Card className="grid gap-10 p-7 sm:p-10 lg:grid-cols-[1fr_1.2fr] lg:items-center">
-        <div>
-          <p className="mb-4 text-xs font-semibold uppercase tracking-[0.18em] text-accent-soft">
-            Ad requirements
-          </p>
-          <h2 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
-            What we need from you
-          </h2>
-          <p className="mt-4 leading-relaxed text-text-dim">
-            Don&apos;t have a commercial? No problem. Just let us know on the signup form.
-          </p>
-        </div>
-        <dl className="grid gap-3 sm:grid-cols-3">
-          {specs.map((s) => (
-            <div key={s.label} className="rounded-xl border border-border bg-bg/60 p-5">
-              <dt className="text-xs font-medium uppercase tracking-wider text-text-muted">
-                {s.label}
-              </dt>
-              <dd className="mt-2 font-display text-xl font-bold">{s.value}</dd>
-              {s.note && <dd className="mt-0.5 text-xs text-text-dim">{s.note}</dd>}
-            </div>
-          ))}
-        </dl>
-      </Card>
     </Section>
   );
 }

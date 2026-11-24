@@ -30,6 +30,7 @@ export function ContactForm() {
   const [submitted, setSubmitted] = useState(false);
   const [status, setStatus] = useState<Status>("idle");
   const [sentName, setSentName] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   const honeypotRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -54,14 +55,20 @@ export function ContactForm() {
     }
 
     setStatus("sending");
+    setErrorMessage("");
     try {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...values, [HONEYPOT_FIELD]: honeypotRef.current?.value ?? "" }),
       });
-      const data = (await res.json().catch(() => null)) as { ok?: boolean } | null;
-      if (!res.ok || !data?.ok) throw new Error("Request failed");
+      const data = (await res.json().catch(() => null)) as { ok?: boolean; error?: string } | null;
+      if (!res.ok || !data?.ok) {
+        // Show the server's message when it's one people can act on (like "wait a few minutes").
+        if (res.status === 429 && data?.error) setErrorMessage(data.error);
+        setStatus("error");
+        return;
+      }
       setSentName(values.name.trim());
       setStatus("sent");
     } catch {
@@ -138,8 +145,8 @@ export function ContactForm() {
 
       {status === "error" && (
         <p role="alert" className="rounded-xl border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger">
-          Sorry, your message didn&apos;t go through. Please try again in a moment. Your text is
-          still here.
+          {errorMessage || "Sorry, your message didn't go through. Please try again in a moment."} Your
+          text is still here.
         </p>
       )}
 

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { HONEYPOT_FIELD, contactSchema, type ContactData } from "@/lib/contact-schema";
 import { escapeHtml, getResend, missingEnv } from "@/lib/email";
+import { rateLimit } from "@/lib/rate-limit";
 
 const REQUIRED_ENV = ["RESEND_API_KEY", "CONTACT_FROM_EMAIL", "CONTACT_TO_EMAIL"] as const;
 
@@ -9,6 +10,9 @@ function json(body: { ok: true } | { ok: false; error: string; fields?: Record<s
 }
 
 export async function POST(request: Request) {
+  const limited = await rateLimit(request, "contact");
+  if (limited) return limited;
+
   let body: unknown;
   try {
     body = await request.json();

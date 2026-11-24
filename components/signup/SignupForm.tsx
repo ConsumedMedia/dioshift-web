@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { Card } from "@/components/ui/Card";
 import { buttonClass } from "@/components/ui/Button";
@@ -36,7 +35,6 @@ function validate(values: FormValues): Errors {
 type Status = "idle" | "sending" | "error";
 
 export function SignupForm({ initialPackageId }: { initialPackageId?: PackageId }) {
-  const router = useRouter();
   const [values, setValues] = useState<FormValues>(() =>
     initialValues(initialPackageId ?? POPULAR_PACKAGE.id),
   );
@@ -51,6 +49,11 @@ export function SignupForm({ initialPackageId }: { initialPackageId?: PackageId 
   const headingRef = useRef<HTMLHeadingElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const honeypotRef = useRef<HTMLInputElement>(null);
+  /**
+   * A row saved by a submit whose payment page failed to open. Retrying with
+   * the same answers reuses it instead of saving a duplicate signup.
+   */
+  const savedSignup = useRef<{ id: string; payload: string } | null>(null);
   /** Set when the step changes or a field needs focus; handled after render. */
   const pending = useRef<{ kind: "step" } | { kind: "field"; field: SignupField } | null>(null);
 
@@ -69,6 +72,16 @@ export function SignupForm({ initialPackageId }: { initialPackageId?: PackageId 
       el?.focus();
     }
   });
+
+  // Coming back from Stripe with the browser's Back button can restore this
+  // page from the back/forward cache mid "sending". Re-enable the form.
+  useEffect(() => {
+    const onShow = (e: PageTransitionEvent) => {
+      if (e.persisted) setStatus((s) => (s === "sending" ? "idle" : s));
+    };
+    window.addEventListener("pageshow", onShow);
+    return () => window.removeEventListener("pageshow", onShow);
+  }, []);
 
   const errorFor = (field: SignupField) =>
     attempted[stepOf(field)] || touched[field] ? errors[field] : undefined;
@@ -124,22 +137,34 @@ export function SignupForm({ initialPackageId }: { initialPackageId?: PackageId 
 
     setStatus("sending");
     setErrorMessage("");
+    const payload = JSON.stringify(toPayload(values));
+    const saved = savedSignup.current?.payload === payload ? savedSignup.current : null;
     try {
-      const res = await fetch("/api/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...toPayload(values), [HONEYPOT_FIELD]: honeypotRef.current?.value ?? "" }),
-      });
+      // Same answers as a signup we already saved: just reopen payment for it.
+      const res = saved
+        ? await fetch("/api/signup/checkout", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ signupId: saved.id }),
+          })
+        : await fetch("/api/signup", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ...toPayload(values), [HONEYPOT_FIELD]: honeypotRef.current?.value ?? "" }),
+          });
       const data = (await res.json().catch(() => null)) as
-        | { ok: true; signupId: string }
-        | { ok: false; error?: string; fields?: Errors }
+        | { ok: true; checkoutUrl: string }
+        | { ok: false; error?: string; fields?: Errors; signupId?: string }
         | null;
 
       if (res.ok && data?.ok) {
-        // TODO(stripe): Temporary stand-in. The next step replaces this redirect
-        // with a Stripe Checkout session for this signupId.
-        router.push(`/signup/received?id=${encodeURIComponent(data.signupId)}`);
+        // Off to Stripe Checkout. Leave the form in "sending" while the page unloads.
+        window.location.assign(data.checkoutUrl);
         return;
+      }
+
+      if (data && !data.ok && data.signupId) {
+        savedSignup.current = { id: data.signupId, payload };
       }
 
       const fields = data && !data.ok ? data.fields : undefined;

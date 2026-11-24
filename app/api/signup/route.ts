@@ -1,12 +1,21 @@
-import { randomUUID } from "node:crypto";
+import { createCheckoutSession } from "@/lib/checkout";
 import { HONEYPOT_FIELD, fieldErrors, signupSchema, type SignupData } from "@/lib/signup-schema";
 import { CPM, getPackageById } from "@/lib/packages";
 import { missingEnv } from "@/lib/env";
+import { rateLimit } from "@/lib/rate-limit";
+import type { SignupRow } from "@/lib/signups";
 import { SUPABASE_ENV, getSupabaseAdmin } from "@/lib/supabase-admin";
 
 type Body =
-  | { ok: true; signupId: string }
-  | { ok: false; error: string; fields?: Record<string, string> };
+  | { ok: true; checkoutUrl: string }
+  // signupId is set when the row was saved but Checkout couldn't start, so the
+  // form can retry payment for that same row instead of saving a duplicate.
+  | { ok: false; error: string; fields?: Record<string, string>; signupId?: string };
+
+const REQUIRED_ENV = [...SUPABASE_ENV, "STRIPE_SECRET_KEY", "SITE_URL"] as const;
+
+const CHECKOUT_FAILED =
+  "Your details are saved, but we couldn't open the payment page. Please try again in a moment.";
 
 function json(body: Body, status = 200) {
   return Response.json(body, { status });
@@ -15,6 +24,9 @@ function json(body: Body, status = 200) {
 const toCents = (dollars: number) => Math.round(dollars * 100);
 
 export async function POST(request: Request) {
+  const limited = await rateLimit(request, "signup");
+  if (limited) return limited;
+
   let body: unknown;
   try {
     body = await request.json();
@@ -28,7 +40,7 @@ export async function POST(request: Request) {
   // Honeypot: pretend it worked so bots don't learn anything, but save nothing.
   const trap = (body as Record<string, unknown>)[HONEYPOT_FIELD];
   if (typeof trap === "string" && trap.trim() !== "") {
-    return json({ ok: true, signupId: randomUUID() });
+    return json({ ok: true, checkoutUrl: "/" });
   }
 
   const parsed = signupSchema.safeParse(body);
@@ -47,17 +59,23 @@ export async function POST(request: Request) {
     return json({ ok: false, error: "Please choose a package.", fields: { packageId: "Choose a package." } }, 400);
   }
 
-  const missing = missingEnv(SUPABASE_ENV);
+  // Check config before saving anything, so a misconfigured server doesn't
+  // collect rows that can never reach payment.
+  const missing = missingEnv(REQUIRED_ENV);
   if (missing.length > 0) {
     console.error(
-      `[signup] Cannot save signup. Missing environment variable(s): ${missing.join(", ")}. ` +
+      `[signup] Cannot take signups. Missing environment variable(s): ${missing.join(", ")}. ` +
         "Add them to .env.local (see .env.example) and restart the server.",
     );
     return json({ ok: false, error: "Signups are temporarily unavailable. Please try again soon." }, 500);
   }
 
+  let row: Pick<
+    SignupRow,
+    "id" | "email" | "business_name" | "package_id" | "impressions" | "monthly_price_cents" | "stripe_checkout_session_id"
+  >;
   try {
-    const { data: row, error } = await getSupabaseAdmin()
+    const { data: inserted, error } = await getSupabaseAdmin()
       .from("streaming_signups")
       .insert({
         status: "pending_payment",
@@ -68,21 +86,29 @@ export async function POST(request: Request) {
         ...toRow(data),
         terms_accepted_at: new Date().toISOString(),
       })
-      .select("id")
+      .select("id, email, business_name, package_id, impressions, monthly_price_cents, stripe_checkout_session_id")
       .single();
 
-    if (error || !row) {
+    if (error || !inserted) {
       console.error("[signup] Supabase insert failed:", error);
       return json(
         { ok: false, error: "We couldn't save your signup. Please try again in a moment." },
         500,
       );
     }
-
-    return json({ ok: true, signupId: row.id as string });
+    row = inserted as typeof row;
   } catch (err) {
     console.error("[signup] Unexpected error saving signup:", err);
     return json({ ok: false, error: "We couldn't save your signup. Please try again in a moment." }, 500);
+  }
+
+  try {
+    const checkoutUrl = await createCheckoutSession(row);
+    return json({ ok: true, checkoutUrl });
+  } catch (err) {
+    // Keep the row. The form can retry payment for it via /api/signup/checkout.
+    console.error(`[signup] Saved signup ${row.id} but could not create a Checkout Session:`, err);
+    return json({ ok: false, error: CHECKOUT_FAILED, signupId: row.id }, 502);
   }
 }
 

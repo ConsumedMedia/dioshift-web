@@ -198,7 +198,11 @@ export function renderClientConfirmation(row: SignupRow) {
   }
 
   const name = firstName(row.contact_name);
-  const intro = `Thanks for signing up ${row.business_name} for Dioshift Streaming TV. Your commercial is headed for the biggest screen in your customers' homes.`;
+  const intro = `Thanks for signing up ${row.business_name} for Dioshift Streaming TV. ${
+    row.creative_status === "need"
+      ? "Next, we'll work with you on your commercial, then put it on the biggest screen in your customers' homes."
+      : "Your commercial is headed for the biggest screen in your customers' homes."
+  }`;
   const help = "Need to make a change or cancel? Reply to this email. Cancellation requires 30 days' notice.";
 
   const html = layout({

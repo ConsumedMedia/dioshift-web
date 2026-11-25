@@ -91,8 +91,10 @@ async function Success({ sessionId }: { sessionId: string | undefined }) {
       title="Your ad is headed to TV."
       lead={
         <>
-          You&apos;re in, <span className="font-medium text-text">{businessName}</span>. Your commercial is on its way
-          to the biggest screen in your customers&apos; homes.
+          <span className="font-medium text-text">{businessName}</span> is officially signed up.{" "}
+          {signup?.creative_status === "need"
+            ? "Next, we'll work with you on your commercial, then put it on the biggest screen in your customers' homes."
+            : "Your commercial is on its way to the biggest screen in your customers' homes."}
         </>
       }
     >

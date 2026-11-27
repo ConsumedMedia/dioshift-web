@@ -1,12 +1,23 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { AdRequirements } from "@/components/AdRequirements";
+import { JsonLd } from "@/components/JsonLd";
 import { TvMockup } from "@/components/TvMockup";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, pageMetadata } from "@/lib/metadata";
 import { PACKAGES, formatImpressions, formatPrice } from "@/lib/packages";
+import { serviceJsonLd } from "@/lib/structured-data";
+
+export const metadata: Metadata = pageMetadata({
+  title: DEFAULT_TITLE,
+  absoluteTitle: true,
+  description: DEFAULT_DESCRIPTION,
+  path: "/",
+});
 
 /* ---------- Icons (inline, 24px, stroke) ---------- */
 
@@ -144,6 +155,7 @@ const steps = [
 export default function HomePage() {
   return (
     <>
+      <JsonLd data={serviceJsonLd()} />
       <Hero />
       <WhatIsStreaming />
       <Benefits />

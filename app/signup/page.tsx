@@ -4,17 +4,20 @@ import { PageHero } from "@/components/PageHero";
 import { SignupForm } from "@/components/signup/SignupForm";
 import { Card } from "@/components/ui/Card";
 import { getPackageById } from "@/lib/packages";
-import { pageMetadata } from "@/lib/metadata";
+import { STARTING_PRICE, pageMetadata } from "@/lib/metadata";
+import { JsonLd } from "@/components/JsonLd";
+import { breadcrumbJsonLd } from "@/lib/structured-data";
 
 export const metadata: Metadata = pageMetadata({
-  title: "Get Started",
-  description:
-    "Pick your monthly reach, tell us about your business and who you want to reach, and get your commercial on streaming TV.",
+  title: "Get Started with Streaming TV Ads",
+  description: `Sign up in about five minutes. Pick your monthly impressions, tell us who to reach, and send your commercial. Plans from ${STARTING_PRICE} a month, no contract.`,
+  path: "/signup",
 });
 
 export default function SignupPage({ searchParams }: PageProps<"/signup">) {
   return (
     <>
+      <JsonLd data={breadcrumbJsonLd("Get Started", "/signup")} />
       <PageHero
         eyebrow="Get started"
         title="Put your business on streaming TV today."

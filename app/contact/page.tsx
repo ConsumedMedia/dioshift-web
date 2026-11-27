@@ -4,16 +4,20 @@ import { ContactForm } from "@/components/ContactForm";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { pageMetadata } from "@/lib/metadata";
+import { JsonLd } from "@/components/JsonLd";
+import { breadcrumbJsonLd } from "@/lib/structured-data";
 
 export const metadata: Metadata = pageMetadata({
-  title: "Contact",
+  title: "Contact Us",
   description:
-    "Questions about streaming TV advertising for your business? Send Dioshift a note and we'll get back to you by email.",
+    "Questions about streaming TV ads for your business? Send Dioshift a note and we'll reply by email. Based in Grove City, serving Columbus and Ohio.",
+  path: "/contact",
 });
 
 export default function ContactPage() {
   return (
     <section className="relative overflow-hidden pt-16 pb-20 sm:pt-24 sm:pb-28">
+      <JsonLd data={breadcrumbJsonLd("Contact", "/contact")} />
       <div
         aria-hidden
         className="pointer-events-none absolute top-[-30%] left-1/2 h-[500px] w-[800px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(79,142,255,0.14),transparent)]"

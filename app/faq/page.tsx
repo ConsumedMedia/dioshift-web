@@ -6,20 +6,21 @@ import { Button } from "@/components/ui/Button";
 import { Section } from "@/components/ui/Section";
 import { FAQ_GROUPS, faqJsonLd } from "@/lib/faq";
 import { pageMetadata } from "@/lib/metadata";
+import { JsonLd } from "@/components/JsonLd";
+import { breadcrumbJsonLd } from "@/lib/structured-data";
 
 export const metadata: Metadata = pageMetadata({
-  title: "FAQ",
+  title: "Streaming TV Advertising FAQ",
   description:
-    "Straight answers about streaming TV advertising for local businesses: where your ad shows up, targeting, pricing, billing, cancellation and commercial requirements.",
+    "Answers for business owners about streaming TV ads: where your ad runs, local targeting, pricing, billing, cancellation and commercial specs.",
+  path: "/faq",
 });
 
 export default function FaqPage() {
-  // Escape "<" so nothing in the data can close the script tag early.
-  const jsonLd = JSON.stringify(faqJsonLd()).replace(/</g, "\\u003c");
-
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
+      <JsonLd data={faqJsonLd()} />
+      <JsonLd data={breadcrumbJsonLd("FAQ", "/faq")} />
 
       <PageHero
         eyebrow="FAQ"

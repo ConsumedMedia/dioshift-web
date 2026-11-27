@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type Stripe from "stripe";
 import { Suspense } from "react";
+import { SignupCompletedEvent } from "@/components/SignupCompletedEvent";
 import { Button } from "@/components/ui/Button";
 import { ContactFallback, ResultCard, ResultCardSkeleton, SummaryList } from "@/components/signup/ResultCard";
 import { pageMetadata } from "@/lib/metadata";
@@ -11,7 +12,8 @@ import { getStripe, isOurs } from "@/lib/stripe";
 export const metadata: Metadata = {
   ...pageMetadata({
     title: "You're Signed Up",
-    description: "Your streaming TV campaign is confirmed.",
+    description:
+      "Your Dioshift streaming TV campaign is confirmed. Here's your plan summary, your billing date and what happens next before your ad goes live.",
   }),
   robots: { index: false, follow: false },
 };
@@ -99,6 +101,11 @@ async function Success({ sessionId }: { sessionId: string | undefined }) {
       }
     >
       <SummaryList items={summary} />
+
+      {/* Confirmed paid signup only: this branch runs after payment_status === "paid". */}
+      {pkg && monthlyCents != null && (
+        <SignupCompletedEvent sessionId={sessionId} packageId={pkg.id} monthlyPrice={monthlyCents / 100} />
+      )}
 
       <div className="mt-8">
         <h2 className="font-display text-lg font-bold tracking-tight">What happens next</h2>

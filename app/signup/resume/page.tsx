@@ -9,7 +9,8 @@ import { getSignup, type SignupRow } from "@/lib/signups";
 export const metadata: Metadata = {
   ...pageMetadata({
     title: "Finish Your Signup",
-    description: "Your details are saved. Finish payment to get your commercial on streaming TV.",
+    description:
+      "Your Dioshift signup details are saved. Finish payment to lock in your streaming TV plan and get your commercial in front of local households.",
   }),
   robots: { index: false, follow: false },
 };

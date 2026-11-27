@@ -9,6 +9,8 @@ import { Card } from "@/components/ui/Card";
 import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { pageMetadata } from "@/lib/metadata";
+import { JsonLd } from "@/components/JsonLd";
+import { breadcrumbJsonLd } from "@/lib/structured-data";
 import {
   POPULAR_PACKAGE,
   formatImpressions,
@@ -17,9 +19,10 @@ import {
 } from "@/lib/packages";
 
 export const metadata: Metadata = pageMetadata({
-  title: "How It Works",
+  title: "How Streaming TV Ads Work",
   description:
-    "How Dioshift gets your local business on streaming TV in four steps: pick a monthly package, tell us who to reach, send your :30 commercial, and we launch it.",
+    "Pick a monthly plan, tell us who to reach, send your :30 commercial, and we launch it. See how Dioshift gets local businesses on streaming TV.",
+  path: "/how-it-works",
 });
 
 const { min, max } = getPackageRange();
@@ -90,6 +93,7 @@ const steps: Step[] = [
 export default function HowItWorksPage() {
   return (
     <>
+      <JsonLd data={breadcrumbJsonLd("How It Works", "/how-it-works")} />
       <PageHero
         eyebrow="How it works"
         title="Streaming TV, minus the runaround."

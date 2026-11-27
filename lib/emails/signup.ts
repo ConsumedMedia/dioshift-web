@@ -203,7 +203,7 @@ export function renderClientConfirmation(row: SignupRow) {
       ? "Next, we'll work with you on your commercial, then put it on the biggest screen in your customers' homes."
       : "Your commercial is headed for the biggest screen in your customers' homes."
   }`;
-  const help = "Need to make a change or cancel? Reply to this email. Cancellation requires 30 days' notice.";
+  const help = "Need to make a change? Just reply to this email. Cancel anytime. We ask for 30 days' notice.";
 
   const html = layout({
     heading: "You're signed up",
@@ -285,6 +285,7 @@ function adminSections(row: SignupRow): Array<[string, Rows]> {
         ["Paid", dateTime(row.paid_at)],
         ["Signed up", dateTime(row.created_at)],
         ["Terms accepted", dateTime(row.terms_accepted_at)],
+        ["Terms version", row.terms_version ?? "Not recorded"],
         ["Signup ID", row.id],
       ],
     ],
@@ -431,40 +432,267 @@ export async function sendSubscriptionCanceledNotice(input: {
   });
 }
 
-export async function sendPaymentFailedNotice(input: {
-  signup: NoticeSignup | null;
-  businessName: string;
-  customerId: string | null;
-  subscriptionId: string | null;
-  invoiceId: string;
-  amountDueCents: number;
-  attemptCount: number;
-  nextAttempt: Date | null;
-}): Promise<void> {
-  assertEmailConfigured();
-  const business = input.signup?.business_name ?? input.businessName;
-  const { html, text } = notice({
-    heading: "Payment failed",
-    lead: `A Streaming TV payment for ${business} didn't go through. Stripe will retry on its own schedule. You may want to reach out.`,
-    rows: [
-      ...signupRows(input.signup, business),
-      ["Amount due", money(input.amountDueCents)],
-      ["Attempt", String(input.attemptCount)],
-      ["Next retry", input.nextAttempt ? dateTime(input.nextAttempt) : "None scheduled"],
-      ...stripeLinks({
-        customerId: input.customerId,
-        subscriptionId: input.subscriptionId,
-        invoiceId: input.invoiceId,
-      }),
+// ---------------------------------------------------------------------------
+// Failed and recovered renewal payments (client + admin)
+// ---------------------------------------------------------------------------
+
+/** The invoice details the payment emails need, pulled from a Stripe invoice event. */
+export interface PaymentInvoice {
+  invoiceId: string | null;
+  /** amount_due for a failure, amount_paid for a recovery. */
+  amountCents: number;
+  /** Stripe's hosted page where the client can pay with a new card. */
+  hostedInvoiceUrl: string | null;
+  attemptCount?: number;
+  nextAttempt?: Date | null;
+}
+
+/** How the client email went, shown on the matching admin email. */
+type ClientEmailResult = { ok: true } | { ok: false; error: string };
+
+const BUTTON =
+  "display:inline-block;padding:13px 26px;border-radius:999px;background:#4f8eff;color:#ffffff;" +
+  "font-size:15px;font-weight:700;text-decoration:none;";
+
+function buttonHtml(text: string, href: string): string {
+  return `<div style="padding:8px 12px 18px;"><a href="${escapeHtml(href)}" style="${BUTTON}">${escapeHtml(text)}</a></div>`;
+}
+
+function paragraphsHtml(paragraphs: string[]): string {
+  return `<div style="padding:8px 12px 4px;">${paragraphs.map((p) => `<p style="${P}">${escapeHtml(p)}</p>`).join("")}</div>`;
+}
+
+/** Red banner for the one line an admin must not miss. */
+function alertHtml(text: string): string {
+  return `<div style="margin:8px 12px 12px;padding:12px 14px;border-radius:8px;background:#fef2f2;border:1px solid #fecaca;color:#b91c1c;font-size:15px;font-weight:700;line-height:1.5;">${escapeHtml(text)}</div>`;
+}
+
+/** Only an https link goes on the button. */
+const safePayUrl = (inv: PaymentInvoice) =>
+  inv.hostedInvoiceUrl && /^https:\/\//i.test(inv.hostedInvoiceUrl) ? inv.hostedInvoiceUrl : null;
+
+function clientSummary(row: SignupRow, amountLabel: string, amountCents: number): Rows {
+  return [
+    ["Business", row.business_name],
+    ["Package", `${formatImpressions(row.impressions)} impressions / month`],
+    [amountLabel, money(amountCents)],
+  ];
+}
+
+function clientEmail({
+  heading,
+  before,
+  summary,
+  button,
+  after,
+  footer,
+}: {
+  heading: string;
+  before: string[];
+  summary: Rows;
+  button?: { text: string; href: string };
+  after: string[];
+  footer: string;
+}) {
+  const html = layout({
+    heading,
+    body: [
+      paragraphsHtml(before),
+      tableHtml(summary),
+      `<div style="height:14px;"></div>`,
+      button ? buttonHtml(button.text, button.href) : "",
+      paragraphsHtml(after),
+    ].join(""),
+    footer: escapeHtml(footer),
+  });
+  const text = [
+    ...before.flatMap((p) => [p, ""]),
+    ...summary.map(([label, value]) => `${label}: ${cellText(value)}`),
+    "",
+    ...(button ? [`${button.text}: ${button.href}`, ""] : []),
+    ...after.flatMap((p) => [p, ""]),
+    footer,
+  ].join("\n");
+  return { html, text };
+}
+
+function adminEmail({ heading, alert, lead, rows }: { heading: string; alert: string; lead: string; rows: Rows }) {
+  const footer = "Sent automatically by the Stripe webhook.";
+  const html = layout({
+    heading,
+    body: `${alertHtml(alert)}${paragraphsHtml([lead])}${tableHtml(rows)}`,
+    footer: escapeHtml(footer),
+  });
+  const text = [
+    heading,
+    "",
+    `*** ${alert} ***`,
+    "",
+    lead,
+    "",
+    ...rows.map(([label, value]) => `${label}: ${cellText(value)}`),
+    "",
+    footer,
+  ].join("\n");
+  return { html, text };
+}
+
+function adminPackageRows(row: SignupRow): Rows {
+  const pkg = getPackageById(row.package_id);
+  return [
+    ["Business", row.business_name],
+    ["Package", `${pkg ? `${pkg.label}, ` : ""}${packageShort(row)}`],
+  ];
+}
+
+function adminContactRows(row: SignupRow): Rows {
+  return [
+    ["Contact", row.contact_name],
+    ["Email", { text: row.email, href: `mailto:${row.email}` }],
+    ["Phone", { text: row.phone, href: `tel:${row.phone.replace(/[^\d+]/g, "")}` }],
+  ];
+}
+
+function clientEmailCell(result: ClientEmailResult, sentText: string): Cell {
+  return result.ok ? sentText : { flag: `NOT SENT. Contact the client directly. (${result.error})` };
+}
+
+export function renderClientPaymentFailed(row: SignupRow, inv: PaymentInvoice) {
+  const payUrl = safePayUrl(inv);
+  const resume = "Once your payment goes through, your campaign picks back up and you still get this month's full impressions.";
+  const { html, text } = clientEmail({
+    heading: "Your payment didn't go through",
+    before: [
+      `Hi ${firstName(row.contact_name)},`,
+      `This month's payment for your Dioshift Streaming TV plan didn't go through, so we've paused the campaign for ${row.business_name} for now. Ads only run on paid months.`,
     ],
-    footer: "Sent automatically by the Stripe webhook.",
+    summary: clientSummary(row, "Amount due", inv.amountCents),
+    button: payUrl ? { text: "Update payment", href: payUrl } : undefined,
+    after: payUrl
+      ? [`Use the link above to pay with an updated card. ${resume}`, "Questions? Just reply to this email."]
+      : [`Reply to this email and we'll help you update your card. ${resume}`],
+    footer: `You're getting this because ${row.business_name} has a Dioshift Streaming TV plan.`,
   });
+  return { subject: "Action needed: update your payment for Dioshift", html, text };
+}
+
+export function renderAdminPaymentFailed(row: SignupRow, inv: PaymentInvoice, client: ClientEmailResult) {
+  const payUrl = safePayUrl(inv);
+  const { html, text } = adminEmail({
+    heading: "Payment failed",
+    alert: "Pause this campaign until payment clears.",
+    lead: `A renewal payment for ${row.business_name} didn't go through. The signup is now marked past_due. You'll get a "Payment recovered" email when it's paid.`,
+    rows: [
+      ...adminPackageRows(row),
+      ["Amount due", money(inv.amountCents)],
+      ...adminContactRows(row),
+      ...(inv.attemptCount ? ([["Attempt", String(inv.attemptCount)]] as Rows) : []),
+      ["Next automatic retry", inv.nextAttempt ? dateTime(inv.nextAttempt) : "None scheduled"],
+      [
+        "Client email",
+        clientEmailCell(client, payUrl ? "Sent, with a link to pay" : "Sent, asking them to reply (invoice had no payment link)"),
+      ],
+      ...(payUrl ? ([["Client payment link", { text: "Hosted invoice", href: payUrl }]] as Rows) : []),
+      ...stripeLinks({
+        customerId: row.stripe_customer_id,
+        subscriptionId: row.stripe_subscription_id,
+        invoiceId: inv.invoiceId,
+      }),
+      ["Signup ID", row.id],
+    ],
+  });
+  return { subject: `PAYMENT FAILED: Pause ${row.business_name} campaign now`, html, text };
+}
+
+export function renderClientPaymentRecovered(row: SignupRow, inv: PaymentInvoice) {
+  const { html, text } = clientEmail({
+    heading: "Your campaign is back on",
+    before: [
+      `Hi ${firstName(row.contact_name)},`,
+      `Thanks. Your payment went through, and the campaign for ${row.business_name} is back on. You'll still get this month's full impressions.`,
+    ],
+    summary: clientSummary(row, "Amount paid", inv.amountCents),
+    after: ["Questions? Just reply to this email."],
+    footer: `You're billed ${money(row.monthly_price_cents)} each month on the same date you signed up.`,
+  });
+  return { subject: "Payment received. Your campaign is back on.", html, text };
+}
+
+export function renderAdminPaymentRecovered(row: SignupRow, inv: PaymentInvoice, client: ClientEmailResult) {
+  const { html, text } = adminEmail({
+    heading: "Payment recovered",
+    alert: "Resume this campaign and deliver this month's full impressions.",
+    lead: `${row.business_name} paid their past due invoice. The signup is active again.`,
+    rows: [
+      ...adminPackageRows(row),
+      ["Amount paid", money(inv.amountCents)],
+      ...adminContactRows(row),
+      ["Payment failed", row.last_payment_failed_at ? dateTime(row.last_payment_failed_at) : "Unknown"],
+      ["Client email", clientEmailCell(client, "Sent, confirming the campaign is back on")],
+      ...stripeLinks({
+        customerId: row.stripe_customer_id,
+        subscriptionId: row.stripe_subscription_id,
+        invoiceId: inv.invoiceId,
+      }),
+      ["Signup ID", row.id],
+    ],
+  });
+  return { subject: `Payment recovered: Resume ${row.business_name} campaign`, html, text };
+}
+
+type Rendered = { subject: string; html: string; text: string };
+
+/**
+ * Sends the client email first, then the admin email (which says whether the
+ * client email went out). Both are attempted; throws afterward if either failed.
+ */
+async function sendClientThenAdmin(
+  row: SignupRow,
+  renderClient: () => Rendered,
+  renderAdmin: (client: ClientEmailResult) => Rendered,
+  what: string,
+): Promise<void> {
+  assertEmailConfigured();
   const admins = notifyEmails();
-  await send({
-    to: admins,
-    replyTo: input.signup?.email ?? admins[0],
-    subject: `Payment failed: ${business}`,
-    html,
-    text,
-  });
+
+  let client: ClientEmailResult;
+  try {
+    await send({ to: [row.email], replyTo: admins[0], ...renderClient() });
+    client = { ok: true };
+  } catch (err) {
+    client = { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+
+  let adminError: string | null = null;
+  try {
+    await send({ to: admins, replyTo: row.email, ...renderAdmin(client) });
+  } catch (err) {
+    adminError = err instanceof Error ? err.message : String(err);
+  }
+
+  const failures = [
+    ...(client.ok ? [] : [`client email: ${client.error}`]),
+    ...(adminError ? [`admin email: ${adminError}`] : []),
+  ];
+  if (failures.length > 0) throw new Error(`Signup ${row.id} ${what} email failures. ${failures.join(" | ")}`);
+}
+
+/** First failed renewal: tell the client how to pay, tell the admins to pause the campaign. */
+export function sendPaymentFailedEmails(row: SignupRow, inv: PaymentInvoice): Promise<void> {
+  return sendClientThenAdmin(
+    row,
+    () => renderClientPaymentFailed(row, inv),
+    (client) => renderAdminPaymentFailed(row, inv, client),
+    "payment failed",
+  );
+}
+
+/** A past_due invoice was paid: tell the client it's back on, tell the admins to resume. */
+export function sendPaymentRecoveredEmails(row: SignupRow, inv: PaymentInvoice): Promise<void> {
+  return sendClientThenAdmin(
+    row,
+    () => renderClientPaymentRecovered(row, inv),
+    (client) => renderAdminPaymentRecovered(row, inv, client),
+    "payment recovered",
+  );
 }

@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/Card";
 import { formatImpressions, formatPrice, type Package } from "@/lib/packages";
 
-const TERMS = ["Billed monthly starting today", "30-day notice to cancel"] as const;
+const TERMS = ["Billed monthly starting today", "Cancel anytime. We ask for 30 days' notice."] as const;
 
 function Check() {
   return (

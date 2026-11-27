@@ -1,6 +1,11 @@
 import Stripe from "stripe";
-import { sendPaymentFailedNotice, sendSignupEmails, sendSubscriptionCanceledNotice } from "@/lib/emails/signup";
-import { getSignup, isSignupId, type SignupRow } from "@/lib/signups";
+import {
+  sendPaymentFailedEmails,
+  sendPaymentRecoveredEmails,
+  sendSignupEmails,
+  sendSubscriptionCanceledNotice,
+} from "@/lib/emails/signup";
+import { getSignup, isSignupId, type SignupRow, type SignupStatus } from "@/lib/signups";
 import { idOf, isOurs } from "@/lib/stripe";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
@@ -50,6 +55,9 @@ export async function POST(request: Request) {
         break;
       case "invoice.payment_failed":
         await onPaymentFailed(event.data.object);
+        break;
+      case "invoice.paid":
+        await onInvoicePaid(event.data.object);
         break;
       default:
         break;
@@ -124,7 +132,10 @@ async function onCheckoutPaid(session: Stripe.Checkout.Session, eventId: string)
   }
 }
 
-/** Subscription ended (canceled in the dashboard or after failed payments). */
+/**
+ * Subscription ended (canceled in the dashboard or after failed payments).
+ * Matches any status except 'canceled', so it works from 'active' and 'past_due'.
+ */
 async function onSubscriptionDeleted(subscription: Stripe.Subscription) {
   if (!isOurs(subscription.metadata)) return;
 
@@ -156,24 +167,127 @@ async function onSubscriptionDeleted(subscription: Stripe.Subscription) {
   }
 }
 
-/** A renewal (or first) payment failed. Tell the admins. */
-async function onPaymentFailed(invoice: Stripe.Invoice) {
+// ---------------------------------------------------------------------------
+// Failed and recovered renewals
+//
+// Rule: the client pays first. No ads run on an unpaid month.
+//   invoice.payment_failed: active -> past_due (pause), emails once.
+//   invoice.paid:           past_due -> active (resume), emails once.
+// Both updates are conditional on the current status, so a retried or
+// repeated event changes nothing and sends nothing.
+// ---------------------------------------------------------------------------
+
+type InvoiceRef = { subscriptionId: string; signupId: string | null };
+
+/** The subscription (and signup) behind one of our invoices, or null if it isn't ours. */
+function ourInvoice(invoice: Stripe.Invoice): InvoiceRef | null {
   const details = invoice.parent?.subscription_details;
-  if (!isOurs(details?.metadata)) return;
-
+  if (!isOurs(details?.metadata)) return null;
+  const subscriptionId = idOf(details?.subscription);
+  if (!subscriptionId) return null;
   const signupId = details?.metadata?.signup_id;
-  const signup = isSignupId(signupId) ? await getSignup(signupId) : null;
+  return { subscriptionId, signupId: isSignupId(signupId) ? signupId : null };
+}
 
-  // No database change here, so if the email fails, throw: a Stripe retry
-  // can safely send it.
-  await sendPaymentFailedNotice({
-    signup,
-    businessName: details?.metadata?.business_name || "Unknown business",
-    customerId: idOf(invoice.customer),
-    subscriptionId: idOf(details?.subscription),
-    invoiceId: invoice.id ?? "unknown",
-    amountDueCents: invoice.amount_due,
-    attemptCount: invoice.attempt_count,
-    nextAttempt: invoice.next_payment_attempt ? new Date(invoice.next_payment_attempt * 1000) : null,
+/**
+ * Moves the signup for this subscription from one status to another.
+ * Returns the updated row, or null when no row was in the `from` status.
+ */
+async function moveStatus(
+  ref: InvoiceRef,
+  from: SignupStatus,
+  changes: { status: SignupStatus } & Partial<SignupRow>,
+): Promise<SignupRow | null> {
+  let query = getSupabaseAdmin()
+    .from("streaming_signups")
+    .update(changes)
+    .eq("stripe_subscription_id", ref.subscriptionId)
+    .eq("status", from);
+  if (ref.signupId) query = query.eq("id", ref.signupId);
+
+  const { data, error } = await query.select("*");
+  if (error) {
+    throw new Error(`Could not move signup for ${ref.subscriptionId} from ${from} to ${changes.status}: ${error.message}`);
+  }
+  return (data as SignupRow[] | null)?.[0] ?? null;
+}
+
+/** Current status of the signup on a subscription, for logging. */
+async function currentStatus(subscriptionId: string): Promise<{ id: string; status: string } | null> {
+  const { data, error } = await getSupabaseAdmin()
+    .from("streaming_signups")
+    .select("id, status")
+    .eq("stripe_subscription_id", subscriptionId)
+    .limit(1);
+  if (error) throw new Error(`Could not look up signup for ${subscriptionId}: ${error.message}`);
+  return (data as Array<{ id: string; status: string }> | null)?.[0] ?? null;
+}
+
+/** A charge failed. On the first failure: pause (past_due) and email the client and admins. */
+async function onPaymentFailed(invoice: Stripe.Invoice) {
+  const ref = ourInvoice(invoice);
+  if (!ref) return;
+
+  const row = await moveStatus(ref, "active", {
+    status: "past_due",
+    last_payment_failed_at: new Date().toISOString(),
   });
+
+  if (!row) {
+    // Not a first failure on an active plan: a later retry on a past_due row,
+    // a failed first payment during checkout, or a canceled plan. Log only.
+    const current = await currentStatus(ref.subscriptionId);
+    console.warn(
+      current
+        ? `[stripe-webhook] Payment failed for signup ${current.id} (status ${current.status}, ` +
+            `invoice ${invoice.id}, attempt ${invoice.attempt_count}). No change, no emails.`
+        : `[stripe-webhook] Payment failed for subscription ${ref.subscriptionId} (invoice ${invoice.id}), ` +
+            "but no signup has that subscription. No change, no emails.",
+    );
+    return;
+  }
+
+  try {
+    await sendPaymentFailedEmails(row, {
+      invoiceId: invoice.id ?? null,
+      amountCents: invoice.amount_due,
+      hostedInvoiceUrl: invoice.hosted_invoice_url ?? null,
+      attemptCount: invoice.attempt_count,
+      nextAttempt: invoice.next_payment_attempt ? new Date(invoice.next_payment_attempt * 1000) : null,
+    });
+  } catch (err) {
+    // The row is already past_due, so a Stripe retry would skip the emails.
+    // Log loudly instead of returning 500.
+    console.error(
+      `[stripe-webhook] ACTION NEEDED: signup ${row.id} (${row.business_name}) is now past_due and its campaign ` +
+        "must be paused, but sending the payment failed emails failed:",
+      err,
+    );
+  }
+}
+
+/** An invoice was paid. If it settles a past_due plan: resume (active) and email the client and admins. */
+async function onInvoicePaid(invoice: Stripe.Invoice) {
+  const ref = ourInvoice(invoice);
+  if (!ref) return;
+  // The first invoice is handled by checkout.session.completed.
+  if (invoice.billing_reason === "subscription_create") return;
+
+  const row = await moveStatus(ref, "past_due", { status: "active" });
+  // Normal renewal on an active plan (or a repeat of this event): nothing to do.
+  if (!row) return;
+
+  try {
+    await sendPaymentRecoveredEmails(row, {
+      invoiceId: invoice.id ?? null,
+      amountCents: invoice.amount_paid,
+      hostedInvoiceUrl: invoice.hosted_invoice_url ?? null,
+    });
+  } catch (err) {
+    console.error(
+      `[stripe-webhook] ACTION NEEDED: signup ${row.id} (${row.business_name}) paid and is active again, so its ` +
+        "campaign should resume, but sending the payment recovered emails failed:",
+      err,
+    );
+  }
 }

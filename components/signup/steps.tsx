@@ -629,6 +629,9 @@ function ReviewGroup({
   );
 }
 
+/** Links inside the terms checkbox. They open in a new tab so the form keeps its progress. */
+const LEGAL_LINK = "text-accent-soft underline underline-offset-4 hover:text-text";
+
 export function ReviewStep({
   values,
   set,
@@ -698,8 +701,15 @@ export function ReviewStep({
           onCheckedChange={(v) => set("termsAccepted", v)}
           error={errorFor("termsAccepted")}
         >
-          I understand my plan is billed monthly starting today and renews automatically until canceled, and
-          that cancellation requires 30 days&apos; notice.
+          I agree to the{" "}
+          <a href="/terms" target="_blank" rel="noopener noreferrer" className={LEGAL_LINK}>
+            Terms of Service
+          </a>{" "}
+          and{" "}
+          <a href="/privacy" target="_blank" rel="noopener noreferrer" className={LEGAL_LINK}>
+            Privacy Policy
+          </a>
+          . I understand my plan is billed monthly starting today and renews automatically until I cancel.
         </CheckboxField>
       </div>
     </div>

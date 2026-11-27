@@ -292,7 +292,7 @@ export function SignupForm({ initialPackageId }: { initialPackageId?: PackageId 
       <aside aria-label="Order summary" className="sticky top-24 hidden lg:block">
         <OrderSummary pkg={pkg} />
         <p className="mt-4 px-1 text-sm leading-relaxed text-text-muted">
-          No long-term contract. Change or cancel your plan with 30 days&apos; notice.
+          No long-term contract. Change your plan or cancel anytime. We ask for 30 days&apos; notice.
         </p>
       </aside>
     </div>

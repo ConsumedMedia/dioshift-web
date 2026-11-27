@@ -124,8 +124,8 @@ async function Success({ sessionId }: { sessionId: string | undefined }) {
       </div>
 
       <p className="mt-8 border-t border-border pt-6 text-sm leading-relaxed text-text-muted">
-        {monthly ? `You're billed ${monthly} monthly` : "You're billed monthly"} on the {billingDay}. Need to
-        cancel? Just give us 30 days&apos; notice.
+        {monthly ? `You're billed ${monthly} monthly` : "You're billed monthly"} on the {billingDay}. Cancel
+        anytime. We ask for 30 days&apos; notice.
       </p>
 
       <div className="mt-8 flex justify-center">

@@ -152,7 +152,7 @@ export default function HowItWorksPage() {
               {[
                 "Billed monthly, starting the day you sign up.",
                 "No long-term contract. Month to month.",
-                "Need to cancel? Give us 30 days' notice.",
+                "Cancel anytime. We ask for 30 days' notice.",
               ].map((line) => (
                 <li key={line} className="flex gap-3 leading-relaxed">
                   <span

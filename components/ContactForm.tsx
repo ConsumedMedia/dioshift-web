@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRef, useState, type FormEvent } from "react";
 import { z } from "zod";
 import { cn } from "@/lib/cn";
@@ -164,6 +165,13 @@ export function ContactForm() {
         )}
         {sending ? "Sending..." : "Send message"}
       </button>
+      <p className="text-sm text-text-muted">
+        By sending this, you agree to our{" "}
+        <Link href="/privacy" className="text-text-dim underline underline-offset-4 transition-colors hover:text-text">
+          Privacy Policy
+        </Link>
+        .
+      </p>
     </form>
   );
 }

@@ -47,7 +47,7 @@ export async function POST(request: Request) {
     const signup = await getSignup(signupId);
     if (!signup) return json({ ok: false, error: NOT_FOUND }, 404);
 
-    if (signup.status === "active") {
+    if (signup.status === "active" || signup.status === "past_due") {
       return json({ ok: false, alreadyPaid: true, error: "This signup is already paid. You're all set." }, 409);
     }
     if (signup.status !== "pending_payment") {

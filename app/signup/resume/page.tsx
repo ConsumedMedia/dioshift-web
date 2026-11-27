@@ -39,7 +39,7 @@ async function Resume({ id }: { id: string | undefined }) {
     );
   }
 
-  if (signup?.status === "active") {
+  if (signup?.status === "active" || signup?.status === "past_due") {
     return (
       <ContactFallback
         title="You're already all set."

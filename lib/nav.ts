@@ -6,3 +6,8 @@ export const NAV_LINKS = [
 ] as const;
 
 export const GET_STARTED = { href: "/signup", label: "Get Started" } as const;
+
+export const LEGAL_LINKS = [
+  { href: "/terms", label: "Terms" },
+  { href: "/privacy", label: "Privacy" },
+] as const;

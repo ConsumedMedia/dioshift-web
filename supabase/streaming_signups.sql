@@ -9,9 +9,10 @@ create table if not exists public.streaming_signups (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
 
+  -- past_due: a renewal payment failed and the campaign is paused until it's paid.
   status text not null default 'pending_payment'
     constraint streaming_signups_status_check
-    check (status in ('pending_payment', 'active', 'canceled')),
+    check (status in ('pending_payment', 'active', 'past_due', 'canceled')),
 
   -- Package. Computed on the server from lib/packages.ts, never taken from the browser.
   package_id text not null,
@@ -54,12 +55,16 @@ create table if not exists public.streaming_signups (
   additional_notes text,
 
   terms_accepted_at timestamptz not null,
+  -- TERMS_VERSION from lib/legal.ts at signup. Nullable for rows older than this column.
+  terms_version text,
 
   -- Filled in by the Stripe Checkout step.
   stripe_customer_id text,
   stripe_subscription_id text,
   stripe_checkout_session_id text,
   paid_at timestamptz,
+  -- Set by the webhook when a renewal payment fails.
+  last_payment_failed_at timestamptz,
 
   constraint streaming_signups_creative_link_required
     check (creative_status <> 'have' or creative_link is not null)
@@ -86,6 +91,16 @@ create trigger streaming_signups_set_updated_at
 create index if not exists streaming_signups_email_idx on public.streaming_signups (email);
 create index if not exists streaming_signups_status_idx on public.streaming_signups (status);
 create index if not exists streaming_signups_created_at_idx on public.streaming_signups (created_at desc);
+create index if not exists streaming_signups_stripe_subscription_id_idx on public.streaming_signups (stripe_subscription_id);
+
+-- Upgrades for a table created before 2026-11-25 (no-ops on a fresh install).
+-- Same as supabase/2026-11-25_terms_and_past_due.sql.
+alter table public.streaming_signups add column if not exists terms_version text;
+alter table public.streaming_signups add column if not exists last_payment_failed_at timestamptz;
+alter table public.streaming_signups drop constraint if exists streaming_signups_status_check;
+alter table public.streaming_signups
+  add constraint streaming_signups_status_check
+  check (status in ('pending_payment', 'active', 'past_due', 'canceled'));
 
 -- Row level security is ON with NO policies on purpose.
 -- With no policies, the public (anon) and signed-in (authenticated) roles

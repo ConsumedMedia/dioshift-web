@@ -101,8 +101,29 @@ export const FAQ_GROUPS: FaqGroup[] = [
         id: "how-do-i-cancel",
         question: "How do I cancel?",
         answer:
-          "Contact us with 30 days' notice. We need that time to pull your campaign from the schedule.",
-        links: [{ href: "/contact", label: "Contact us" }],
+          "Email us or reply to any of our emails. We ask for 30 days' notice. If your notice reaches us before your next billing date, we won't charge you again. The month you've already paid for runs in full, and we don't give partial refunds for unused days.",
+        links: [
+          { href: "/terms#canceling-your-plan", label: "Read the cancellation terms" },
+          { href: "/contact", label: "Contact us" },
+        ],
+      },
+      {
+        id: "refunds",
+        question: "Can I get a refund?",
+        answer:
+          "If you cancel during your first month before your first ad runs, we refund that month in full. Once ads start running, the month runs to its full impressions and isn't refundable.",
+      },
+      {
+        id: "impression-guarantee",
+        question: "Do you guarantee my impressions?",
+        answer:
+          "Yes. We guarantee your plan's full impression count every paid month. If delivery falls behind, we catch up that month, or deliver the rest the next month at no charge.",
+      },
+      {
+        id: "payment-fails",
+        question: "What happens if my payment fails?",
+        answer:
+          "We pause your campaign and email you a secure link to update your card. Once payment goes through, your campaign picks back up.",
       },
       {
         id: "change-package",
@@ -151,7 +172,7 @@ export const FAQ_GROUPS: FaqGroup[] = [
         id: "how-soon-will-my-ad-run",
         question: "How soon will my ad start running?",
         answer:
-          "After you sign up, we review your commercial and targeting. Then we confirm your launch date with you directly.",
+          "If your commercial meets the requirements, typically within 2 business days of signup. If you need a commercial made, we'll set timing together when we reach out.",
       },
     ],
   },

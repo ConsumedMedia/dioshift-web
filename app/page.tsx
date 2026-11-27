@@ -115,7 +115,7 @@ const benefits = [
   {
     icon: icons.unlock,
     title: "No long-term contract",
-    body: "Stay because it's working, not because you signed for a year. Need to stop? Give us 30 days' notice.",
+    body: "Stay because it's working, not because you signed for a year. Cancel anytime. We ask for 30 days' notice.",
   },
   {
     icon: icons.eye,
@@ -346,7 +346,8 @@ function Pricing() {
         ))}
       </ul>
       <p className="mt-10 text-center text-sm text-text-dim">
-        All plans billed monthly. No long-term contract. <span className="whitespace-nowrap">30-day</span> notice required to cancel.
+        All plans billed monthly. No long-term contract. Cancel anytime. We ask for{" "}
+        <span className="whitespace-nowrap">30 days&apos;</span> notice.
       </p>
     </Section>
   );

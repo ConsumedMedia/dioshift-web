@@ -1,7 +1,13 @@
 import "server-only";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
-export type SignupStatus = "pending_payment" | "active" | "canceled";
+/**
+ * pending_payment: saved, not paid yet.
+ * active: paid, campaign running.
+ * past_due: a renewal failed. Campaign is paused until the invoice is paid.
+ * canceled: subscription ended.
+ */
+export type SignupStatus = "pending_payment" | "active" | "past_due" | "canceled";
 
 /** One row of public.streaming_signups (see supabase/streaming_signups.sql). */
 export interface SignupRow {
@@ -40,11 +46,14 @@ export interface SignupRow {
   additional_notes: string | null;
 
   terms_accepted_at: string;
+  /** TERMS_VERSION (lib/legal.ts) the client agreed to. Null on rows from before it was tracked. */
+  terms_version: string | null;
 
   stripe_customer_id: string | null;
   stripe_subscription_id: string | null;
   stripe_checkout_session_id: string | null;
   paid_at: string | null;
+  last_payment_failed_at: string | null;
 }
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

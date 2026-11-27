@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { cacheLife } from "next/cache";
 import { Logo } from "@/components/Logo";
-import { GET_STARTED, NAV_LINKS } from "@/lib/nav";
+import { GET_STARTED, LEGAL_LINKS, NAV_LINKS } from "@/lib/nav";
 
 async function CopyrightYear() {
   "use cache";
@@ -36,9 +36,20 @@ export function Footer() {
       </div>
 
       <div className="border-t border-border">
-        <p className="mx-auto w-full max-w-6xl px-4 py-6 text-xs text-text-muted sm:px-6 lg:px-8">
-          © <CopyrightYear /> Dioshift. All rights reserved.
-        </p>
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-4 py-6 text-xs text-text-muted sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
+          <p>
+            © <CopyrightYear /> Dioshift. All rights reserved.
+          </p>
+          <ul className="flex gap-6">
+            {LEGAL_LINKS.map((link) => (
+              <li key={link.href}>
+                <Link href={link.href} className="transition-colors hover:text-text">
+                  {link.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </footer>
   );

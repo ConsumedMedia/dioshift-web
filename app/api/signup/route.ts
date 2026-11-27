@@ -2,6 +2,7 @@ import { createCheckoutSession } from "@/lib/checkout";
 import { HONEYPOT_FIELD, fieldErrors, signupSchema, type SignupData } from "@/lib/signup-schema";
 import { CPM, getPackageById } from "@/lib/packages";
 import { missingEnv } from "@/lib/env";
+import { TERMS_VERSION } from "@/lib/legal";
 import { rateLimit } from "@/lib/rate-limit";
 import type { SignupRow } from "@/lib/signups";
 import { SUPABASE_ENV, getSupabaseAdmin } from "@/lib/supabase-admin";
@@ -85,6 +86,8 @@ export async function POST(request: Request) {
         cpm_cents: toCents(CPM),
         ...toRow(data),
         terms_accepted_at: new Date().toISOString(),
+        // Always the server's current version. Never read from the request.
+        terms_version: TERMS_VERSION,
       })
       .select("id, email, business_name, package_id, impressions, monthly_price_cents, stripe_checkout_session_id")
       .single();

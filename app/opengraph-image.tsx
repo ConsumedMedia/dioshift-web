@@ -21,17 +21,22 @@ const GOLD = "#f0c060";
 const TEXT = "#f0f0f5";
 const TEXT_DIM = "#9ca3af";
 
-/** The site's fonts as TTF (ImageResponse can't read woff2). Falls back to the built-in font. */
+/**
+ * The site's fonts as TTF (ImageResponse can't read woff2): Geist for text, matching the
+ * site, and Syne ExtraBold for the wordmark only. Falls back to the built-in font.
+ */
 async function loadFonts() {
   try {
     const dir = join(process.cwd(), "assets", "fonts");
-    const [syne, dmSans] = await Promise.all([
+    const [geistMedium, geistExtraBold, syne] = await Promise.all([
+      readFile(join(dir, "Geist-Medium.ttf")),
+      readFile(join(dir, "Geist-ExtraBold.ttf")),
       readFile(join(dir, "Syne-ExtraBold.ttf")),
-      readFile(join(dir, "DMSans-Medium.ttf")),
     ]);
     return [
+      { name: "Geist", data: geistMedium, style: "normal" as const, weight: 500 as const },
+      { name: "Geist", data: geistExtraBold, style: "normal" as const, weight: 800 as const },
       { name: "Syne", data: syne, style: "normal" as const, weight: 800 as const },
-      { name: "DM Sans", data: dmSans, style: "normal" as const, weight: 500 as const },
     ];
   } catch (err) {
     console.warn("[opengraph-image] Could not load fonts, using the default font:", err);
@@ -56,7 +61,7 @@ export default async function Image() {
           position: "relative",
           background: BG,
           color: TEXT,
-          fontFamily: "DM Sans",
+          fontFamily: "Geist",
           padding: "64px 80px",
         }}
       >
@@ -103,11 +108,10 @@ export default async function Image() {
           style={{
             display: "flex",
             flexDirection: "column",
-            fontFamily: "Syne",
             fontWeight: 800,
             fontSize: 76,
             lineHeight: 1.04,
-            letterSpacing: -3,
+            letterSpacing: "-0.03em",
           }}
         >
           <span>Your business on</span>
@@ -184,7 +188,7 @@ export default async function Image() {
                   </div>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column" }}>
-                  <div style={{ fontFamily: "Syne", fontWeight: 800, fontSize: 24, lineHeight: 1.05, color: "#fff" }}>
+                  <div style={{ fontWeight: 800, fontSize: 24, lineHeight: 1.05, letterSpacing: "-0.02em", color: "#fff" }}>
                     Your Business Here.
                   </div>
                   <div

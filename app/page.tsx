@@ -195,8 +195,11 @@ function Hero() {
             <span className="size-1.5 rounded-full bg-accent shadow-[0_0_8px_var(--color-accent)]" />
             Streaming TV ads for local businesses
           </p>
-          <h1 className="mt-6 font-display text-[2.6rem] leading-[1.02] font-extrabold tracking-[-0.035em] text-balance sm:text-6xl lg:text-[4.25rem]">
-            Put your business on the{" "}
+          <h1 className="mt-6 font-display text-[2.6rem] leading-[1.02] font-extrabold tracking-[-0.03em] text-balance sm:text-6xl lg:text-[4rem] xl:text-[4.25rem]">
+            {/* Fixed desktop breaks so the fallback font and Geist both set 3 lines (no shift on swap). */}
+            Put your <br className="hidden lg:inline" />
+            business on <br className="hidden lg:inline" />
+            the{" "}
             <span className="bg-linear-to-r from-accent-soft via-accent to-accent-2 bg-clip-text text-transparent">
               big screen.
             </span>

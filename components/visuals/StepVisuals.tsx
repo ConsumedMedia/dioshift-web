@@ -53,9 +53,9 @@ function PlanVisual() {
           </span>
         </div>
         <p className="mt-3 font-display text-lg font-bold">{pkg.label}</p>
-        <p className="text-sm text-text-dim">{formatImpressions(pkg.impressions)} impressions</p>
+        <p className="text-sm text-text-dim tabular-nums">{formatImpressions(pkg.impressions)} impressions</p>
         <div className="mt-3 flex items-baseline gap-1 border-t border-border pt-3">
-          <span className="font-display text-xl font-bold">{formatPrice(pkg.monthlyPrice)}</span>
+          <span className="font-display text-xl font-bold tabular-nums">{formatPrice(pkg.monthlyPrice)}</span>
           <span className="text-xs text-text-muted">/ month</span>
         </div>
       </div>

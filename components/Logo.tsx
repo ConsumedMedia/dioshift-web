@@ -11,7 +11,7 @@ export function Logo({ className }: { className?: string }) {
       href="/"
       aria-label="Dioshift home"
       className={cn(
-        "inline-flex items-center gap-2.5 font-display text-[19px] font-extrabold tracking-[-0.5px] text-text",
+        "inline-flex items-center gap-2.5 font-logo text-[19px] font-extrabold tracking-[-0.5px] text-text",
         className,
       )}
     >

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { DM_Sans, Syne } from "next/font/google";
+import { Geist, Syne } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { Footer } from "@/components/Footer";
 import { JsonLd } from "@/components/JsonLd";
@@ -10,16 +10,18 @@ import { siteConfig } from "@/lib/site-config";
 import { siteJsonLd } from "@/lib/structured-data";
 import "./globals.css";
 
-const dmSans = DM_Sans({
-  variable: "--font-dm-sans",
+// One family for headings and body text. Variable font, so every weight is in one file.
+const geist = Geist({
+  variable: "--font-geist",
   subsets: ["latin"],
   display: "swap",
 });
 
+// Only the Dioshift wordmark (components/Logo.tsx) uses Syne, so load just ExtraBold.
 const syne = Syne({
   variable: "--font-syne",
   subsets: ["latin"],
-  weight: ["500", "600", "700", "800"],
+  weight: "800",
   display: "swap",
 });
 
@@ -64,7 +66,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${dmSans.variable} ${syne.variable} h-full antialiased`}>
+    <html lang="en" className={`${geist.variable} ${syne.variable} h-full antialiased`}>
       <body className="relative flex min-h-full flex-col">
         <JsonLd data={siteJsonLd()} />
         <Navbar />

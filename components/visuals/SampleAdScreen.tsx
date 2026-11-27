@@ -89,7 +89,7 @@ function Frame({ frame }: { frame: SampleAdFrame }) {
             <LogoMark className="w-[3.4cqw]" />
             {frame.eyebrow}
           </p>
-          <p className="mt-[1.6cqw] font-display text-[6.6cqw] leading-[1.02] font-bold text-white">
+          <p className="mt-[1.6cqw] font-display text-[6.6cqw] leading-[1.02] font-bold tracking-[-0.02em] text-white">
             {frame.headline}
           </p>
           <p className="mt-[1.6cqw] text-[2.8cqw] text-white/75">{frame.detail}</p>

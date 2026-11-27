@@ -180,12 +180,12 @@ export function PackageStep({ values, set, errorFor }: StepProps) {
                 <span className="font-display text-sm font-semibold text-text-dim">{pkg.label}</span>
                 <RadioDot selected={selected} />
               </span>
-              <span className="mt-3 font-display text-2xl font-bold tracking-tight text-text">
+              <span className="mt-3 font-display text-2xl font-bold tracking-tight text-text tabular-nums">
                 {formatImpressions(pkg.impressions)}
               </span>
               <span className="text-xs text-text-dim">impressions per month</span>
               <span className="mt-3 flex flex-wrap items-baseline gap-x-1 gap-y-2">
-                <span className="font-display text-xl font-bold text-text">{formatPrice(pkg.monthlyPrice)}</span>
+                <span className="font-display text-xl font-bold text-text tabular-nums">{formatPrice(pkg.monthlyPrice)}</span>
                 <span className="text-xs text-text-dim">/month</span>
                 {pkg.popular && (
                   <span className="ml-auto rounded-full border border-accent/30 bg-accent-glow px-2.5 py-1 text-[11px] font-semibold text-accent-soft">

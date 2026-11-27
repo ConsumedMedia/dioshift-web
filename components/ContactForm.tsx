@@ -89,7 +89,7 @@ export function ContactForm() {
             />
           </svg>
         </span>
-        <h2 className="mt-5 font-display text-2xl font-bold">Thanks, {sentName}.</h2>
+        <h2 className="mt-5 font-display text-2xl font-bold tracking-tight">Thanks, {sentName}.</h2>
         <p className="mx-auto mt-3 max-w-sm leading-relaxed text-text-dim">
           Your message is in. We&apos;ll get back to you at the email you gave us.
         </p>

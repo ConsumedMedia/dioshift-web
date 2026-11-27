@@ -78,7 +78,7 @@ export function StickyMobileCta() {
     >
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4">
         <p className="text-sm text-text-dim">
-          From <span className="font-display font-bold text-text">{startingPrice}</span>/mo
+          From <span className="font-display font-bold text-text tabular-nums">{startingPrice}</span>/mo
         </p>
         <Button href="/signup" size="sm" className="h-10 px-5">
           Get Started

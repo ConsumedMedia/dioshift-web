@@ -58,7 +58,7 @@ export function PricingCalculator() {
             className="plan-slider"
             style={{ "--fill": `${fill}%` } as CSSProperties}
           />
-          <div aria-hidden className="mt-3 flex justify-between text-xs text-text-muted">
+          <div aria-hidden className="mt-3 flex justify-between text-xs text-text-muted tabular-nums">
             {PACKAGES.map((p, i) => (
               <span
                 key={p.id}
@@ -110,7 +110,7 @@ export function PricingCalculator() {
                     </span>
                   )}
                 </div>
-                <p className="mt-5 font-display text-3xl font-bold tracking-tight">
+                <p className="mt-5 font-display text-3xl font-bold tracking-tight tabular-nums">
                   {formatImpressions(p.impressions)}
                 </p>
                 <p className="text-sm text-text-dim">impressions per month</p>
@@ -118,7 +118,7 @@ export function PricingCalculator() {
                 <div className="my-6 h-px bg-border" />
 
                 <p className="flex items-baseline gap-1.5">
-                  <span className="font-display text-4xl font-bold tracking-tight">
+                  <span className="font-display text-4xl font-bold tracking-tight tabular-nums">
                     {formatPrice(p.monthlyPrice)}
                   </span>
                   <span className="text-sm text-text-dim">/month</span>
@@ -148,8 +148,8 @@ function Readout({ label, value, small }: { label: string; value: string; small?
       <dd
         className={
           small
-            ? "mt-2 font-display text-base font-bold tracking-tight sm:text-xl"
-            : "mt-2 font-display text-2xl font-bold tracking-tight sm:text-4xl"
+            ? "mt-2 font-display text-base font-bold tracking-tight tabular-nums sm:text-xl"
+            : "mt-2 font-display text-2xl font-bold tracking-tight tabular-nums sm:text-4xl"
         }
       >
         {value}

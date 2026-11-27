@@ -1,7 +1,8 @@
 import { Card } from "@/components/ui/Card";
 import { Section } from "@/components/ui/Section";
 
-const specs = [
+/** Commercial specs. Also used by the streaming TV guide. */
+export const AD_SPECS: { label: string; value: string; note?: string }[] = [
   { label: "Length", value: ":30 seconds" },
   { label: "Resolution", value: "1080p", note: "1920 × 1080" },
   { label: "File type", value: "MP4", note: "Recommended" },
@@ -24,7 +25,7 @@ export function AdRequirements({ className = "pt-0 sm:pt-0" }: { className?: str
           </p>
         </div>
         <dl className="grid gap-3 sm:grid-cols-3">
-          {specs.map((s) => (
+          {AD_SPECS.map((s) => (
             <div key={s.label} className="rounded-xl border border-border bg-bg/60 p-5">
               <dt className="text-xs font-medium uppercase tracking-wider text-text-muted">
                 {s.label}

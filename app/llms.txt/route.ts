@@ -1,4 +1,5 @@
 import { FAQ_GROUPS } from "@/lib/faq";
+import { PUBLISHED_INDUSTRIES, industryPath } from "@/lib/industries";
 import { CPM, PACKAGES, POPULAR_PACKAGE, formatImpressions, formatPrice } from "@/lib/packages";
 import { absoluteUrl, formatAddress, siteConfig } from "@/lib/site-config";
 
@@ -32,6 +33,10 @@ function buildLlmsTxt(): string {
   const faq = FAQ_GROUPS.flatMap((g) => g.items)
     .map((i) => `- ${i.question} ${i.answer}`)
     .join("\n");
+
+  const industryPages = PUBLISHED_INDUSTRIES.map(
+    (i) => `- [Streaming TV for ${i.name}](${absoluteUrl(industryPath(i.slug))}): ${i.shortDescription}`,
+  ).join("\n");
 
   const contact = [
     `- Email: ${email}`,
@@ -100,7 +105,12 @@ ${contact}
 
 - [Home](${absoluteUrl("/")}): overview, benefits and pricing
 - [How It Works](${absoluteUrl("/how-it-works")}): the four steps from signup to launch
-- [Pricing](${absoluteUrl("/")}#pricing): all monthly plans
+- [Pricing](${absoluteUrl("/pricing")}): all monthly plans, the impression calculator and what every plan includes
+- [Streaming TV Advertising Guide](${absoluteUrl("/streaming-tv-advertising")}): plain-English guide to streaming TV ads, CTV vs. OTT, targeting, impressions, cost and commercials
+- [Industries](${absoluteUrl("/industries")}): how streaming TV works for different kinds of local businesses
+${industryPages}
+- [Columbus, Ohio](${absoluteUrl("/columbus-streaming-tv-advertising")}): streaming TV advertising in Columbus and the Central Ohio counties we target
+- [About](${absoluteUrl("/about")}): why Dioshift exists and how we work
 - [FAQ](${absoluteUrl("/faq")}): answers about targeting, billing and commercials
 - [Get Started](${absoluteUrl("/signup")}): sign up and pay for a plan
 - [Contact](${absoluteUrl("/contact")}): send us a question

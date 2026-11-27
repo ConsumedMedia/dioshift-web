@@ -5,6 +5,7 @@ import { AdRequirements } from "@/components/AdRequirements";
 import { ComparisonTable } from "@/components/home/ComparisonTable";
 import { FaqPreview } from "@/components/home/FaqPreview";
 import { FinalCta } from "@/components/home/FinalCta";
+import { IndustryGrid, IndustryGridFooter } from "@/components/IndustryGrid";
 import { PositioningStrip } from "@/components/home/PositioningStrip";
 import { PricingCalculator } from "@/components/home/PricingCalculator";
 import { WhereYourAdRuns } from "@/components/home/WhereYourAdRuns";
@@ -166,6 +167,7 @@ export default function HomePage() {
       <WhatIsStreaming />
       <WhereYourAdRuns />
       <Benefits />
+      <WhoItsFor />
       <HowItWorks />
       <Pricing />
       <ComparisonTable />
@@ -242,6 +244,14 @@ function WhatIsStreaming() {
           <p className="text-sm text-text-muted">
             You might hear it called CTV (connected TV) or OTT. Same idea.
           </p>
+          <p>
+            <Link
+              href="/streaming-tv-advertising"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-accent-soft transition-colors hover:text-text sm:text-base"
+            >
+              Learn how streaming TV advertising works {icons.arrow}
+            </Link>
+          </p>
         </div>
       </div>
 
@@ -283,6 +293,22 @@ function Benefits() {
           </li>
         ))}
       </ul>
+    </Section>
+  );
+}
+
+function WhoItsFor() {
+  return (
+    <Section className="pt-0 sm:pt-0">
+      <SectionHeading
+        eyebrow="Who it's for"
+        title="Local businesses that want to be the name people know."
+        subtitle="If your customers live nearby and trust matters before they buy, streaming TV is worth a look."
+      />
+      <div className="reveal mt-14">
+        <IndustryGrid />
+      </div>
+      <IndustryGridFooter />
     </Section>
   );
 }

@@ -33,7 +33,9 @@ export function Navbar() {
   }, [open]);
 
   const close = () => setOpen(false);
-  const isActive = (href: string) => !href.includes("#") && pathname === href;
+  // Section links like /industries stay active on their child pages too.
+  const isActive = (href: string) =>
+    !href.includes("#") && (pathname === href || pathname.startsWith(`${href}/`));
   const solid = scrolled || open;
 
   return (

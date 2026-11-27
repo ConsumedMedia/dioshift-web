@@ -108,14 +108,146 @@ export function serviceJsonLd() {
   };
 }
 
-/** Inner pages: Home > Page name. */
-export function breadcrumbJsonLd(name: string, path: string) {
+export type BreadcrumbItem = { name: string; path: string };
+
+/** Any breadcrumb trail, in order, starting with Home. */
+export function breadcrumbListJsonLd(items: BreadcrumbItem[]) {
   return {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
-    itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: absoluteUrl("/") },
-      { "@type": "ListItem", position: 2, name, item: absoluteUrl(path) },
-    ],
+    itemListElement: items.map((item, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: item.name,
+      item: absoluteUrl(item.path),
+    })),
+  };
+}
+
+/** Inner pages: Home > Page name. */
+export function breadcrumbJsonLd(name: string, path: string) {
+  return breadcrumbListJsonLd([
+    { name: "Home", path: "/" },
+    { name, path },
+  ]);
+}
+
+/** A reference to the organization, with enough detail to stand on its own. */
+function organizationRef() {
+  return { "@type": "Organization", "@id": ORGANIZATION_ID, name: siteConfig.name, url: siteConfig.url };
+}
+
+/** Long-form guides. Author and publisher are the organization. */
+export function articleJsonLd({
+  headline,
+  description,
+  path,
+  datePublished,
+  dateModified,
+}: {
+  headline: string;
+  description: string;
+  path: string;
+  /** ISO date, e.g. "2026-11-27". */
+  datePublished: string;
+  dateModified: string;
+}) {
+  const url = absoluteUrl(path);
+  return {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "@id": `${url}#article`,
+    headline,
+    description,
+    url,
+    mainEntityOfPage: url,
+    image: SHARE_IMAGE_URL,
+    inLanguage: "en-US",
+    datePublished,
+    dateModified,
+    author: organizationRef(),
+    publisher: { ...organizationRef(), logo: { "@type": "ImageObject", url: LOGO_URL } },
+    isPartOf: { "@id": WEBSITE_ID },
+  };
+}
+
+/** /about: the page is about the organization. */
+export function aboutPageJsonLd({ description, path }: { description: string; path: string }) {
+  const url = absoluteUrl(path);
+  return {
+    "@context": "https://schema.org",
+    "@type": "AboutPage",
+    "@id": `${url}#webpage`,
+    name: `About ${siteConfig.name}`,
+    description,
+    url,
+    inLanguage: "en-US",
+    isPartOf: { "@id": WEBSITE_ID },
+    about: { "@id": ORGANIZATION_ID },
+    mainEntity: { "@id": ORGANIZATION_ID },
+  };
+}
+
+/** Streaming TV advertising for one local area, e.g. the Columbus page. */
+export function localServiceJsonLd({
+  name,
+  description,
+  path,
+  areas,
+}: {
+  name: string;
+  description: string;
+  path: string;
+  /** Area names, e.g. "Franklin County, Ohio". */
+  areas: string[];
+}) {
+  const url = absoluteUrl(path);
+  return {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "@id": `${url}#service`,
+    name,
+    serviceType: "Streaming TV advertising",
+    description,
+    url,
+    provider: { "@id": ORGANIZATION_ID },
+    areaServed: areas.map((area) => ({ "@type": "AdministrativeArea", name: area })),
+  };
+}
+
+/** Streaming TV advertising aimed at one industry. */
+export function industryServiceJsonLd({
+  name,
+  description,
+  path,
+  audience,
+}: {
+  name: string;
+  description: string;
+  path: string;
+  /** Who the service is for, e.g. "Auto dealers". */
+  audience: string;
+}) {
+  const { min, max } = getPackageRange();
+  const url = absoluteUrl(path);
+  return {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "@id": `${url}#service`,
+    name,
+    serviceType: "Streaming TV advertising",
+    description,
+    url,
+    provider: { "@id": ORGANIZATION_ID },
+    areaServed: areaServed(),
+    audience: { "@type": "BusinessAudience", audienceType: audience },
+    offers: {
+      "@type": "AggregateOffer",
+      priceCurrency: "USD",
+      lowPrice: min.monthlyPrice,
+      highPrice: max.monthlyPrice,
+      offerCount: PACKAGES.length,
+      url: absoluteUrl("/pricing"),
+    },
   };
 }

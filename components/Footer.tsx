@@ -2,7 +2,7 @@ import Link from "next/link";
 import { cacheLife } from "next/cache";
 import { icons } from "@/components/icons";
 import { Logo } from "@/components/Logo";
-import { GET_STARTED, LEGAL_LINKS, NAV_LINKS } from "@/lib/nav";
+import { FOOTER_LINKS, LEGAL_LINKS } from "@/lib/nav";
 import { formatAddress, siteConfig } from "@/lib/site-config";
 
 async function CopyrightYear() {
@@ -12,7 +12,7 @@ async function CopyrightYear() {
 }
 
 export function Footer() {
-  const links = [...NAV_LINKS, GET_STARTED];
+  const links = FOOTER_LINKS;
 
   return (
     <footer data-sticky-cta-stop className="relative border-t border-border">

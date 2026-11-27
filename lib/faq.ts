@@ -85,13 +85,13 @@ export const FAQ_GROUPS: FaqGroup[] = [
         id: "how-much-does-it-cost",
         question: "How much does it cost?",
         answer: `Plans run from ${formatPrice(min.monthlyPrice)} to ${formatPrice(max.monthlyPrice)} a month, for ${formatImpressions(min.impressions)} to ${formatImpressions(max.impressions)} impressions. Every plan is priced at the same rate: ${formatPrice(CPM)} per 1,000 impressions.`,
-        links: [{ href: "/#pricing", label: "See all packages" }],
+        links: [{ href: "/pricing", label: "See all packages" }],
       },
       {
         id: "do-i-need-a-big-budget",
         question: "Do I need a big budget?",
         answer: `No. Plans start at ${formatPrice(min.monthlyPrice)} a month, with no contract and no setup fee.`,
-        links: [{ href: "/#pricing", label: "See all packages" }],
+        links: [{ href: "/pricing", label: "See all packages" }],
       },
       {
         id: "what-is-an-impression",

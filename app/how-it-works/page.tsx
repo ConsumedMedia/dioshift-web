@@ -49,7 +49,7 @@ const steps: Step[] = [
           </p>
         </div>
         <Link
-          href="/#pricing"
+          href="/pricing"
           className="text-sm font-medium text-accent-soft transition-colors hover:text-text sm:ml-auto"
         >
           Compare packages →

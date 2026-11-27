@@ -10,7 +10,14 @@ import type { FaqGroup } from "@/lib/faq";
  * Headers are real buttons (Enter/Space toggle). Up/Down/Home/End move
  * between questions.
  */
-export function FaqAccordion({ groups }: { groups: FaqGroup[] }) {
+export function FaqAccordion({
+  groups,
+  showGroupTitles = true,
+}: {
+  groups: FaqGroup[];
+  /** Hide the small group headings, e.g. for a single-group preview under its own heading. */
+  showGroupTitles?: boolean;
+}) {
   const [openId, setOpenId] = useState<string | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -34,13 +41,19 @@ export function FaqAccordion({ groups }: { groups: FaqGroup[] }) {
   return (
     <div ref={rootRef} className="space-y-14">
       {groups.map((group) => (
-        <section key={group.id} aria-labelledby={`faq-group-${group.id}`}>
-          <h2
-            id={`faq-group-${group.id}`}
-            className="mb-4 text-xs font-semibold uppercase tracking-[0.18em] text-accent-soft"
-          >
-            {group.title}
-          </h2>
+        <section
+          key={group.id}
+          aria-labelledby={showGroupTitles ? `faq-group-${group.id}` : undefined}
+          aria-label={showGroupTitles ? undefined : group.title}
+        >
+          {showGroupTitles && (
+            <h2
+              id={`faq-group-${group.id}`}
+              className="mb-4 text-xs font-semibold uppercase tracking-[0.18em] text-accent-soft"
+            >
+              {group.title}
+            </h2>
+          )}
           <div className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-linear-to-b from-white/[0.035] to-white/[0.01]">
             {group.items.map((item) => {
               const open = openId === item.id;

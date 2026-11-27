@@ -4,6 +4,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { Footer } from "@/components/Footer";
 import { JsonLd } from "@/components/JsonLd";
 import { Navbar } from "@/components/Navbar";
+import { StickyMobileCta } from "@/components/StickyMobileCta";
 import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, TITLE_SUFFIX } from "@/lib/metadata";
 import { siteConfig } from "@/lib/site-config";
 import { siteJsonLd } from "@/lib/structured-data";
@@ -69,6 +70,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <Navbar />
         <main className="relative z-10 flex-1">{children}</main>
         <Footer />
+        <StickyMobileCta />
         {/* Cookieless page views. No ad pixels, per the privacy policy. */}
         <Analytics />
       </body>

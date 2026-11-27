@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { cacheLife } from "next/cache";
+import { icons } from "@/components/icons";
 import { Logo } from "@/components/Logo";
 import { GET_STARTED, LEGAL_LINKS, NAV_LINKS } from "@/lib/nav";
+import { formatAddress, siteConfig } from "@/lib/site-config";
 
 async function CopyrightYear() {
   "use cache";
@@ -13,7 +15,7 @@ export function Footer() {
   const links = [...NAV_LINKS, GET_STARTED];
 
   return (
-    <footer className="relative border-t border-border">
+    <footer data-sticky-cta-stop className="relative border-t border-border">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 py-14 sm:px-6 md:flex-row md:items-start md:justify-between lg:px-8">
         <div className="max-w-xs">
           <Logo />
@@ -21,6 +23,33 @@ export function Footer() {
             Streaming TV ads for local businesses. Your commercial on the big screen, in your area.
           </p>
         </div>
+
+        <address className="text-sm not-italic">
+          <p className="font-medium text-text">Based in Grove City, Ohio</p>
+          <ul className="mt-3 space-y-2.5 text-text-dim">
+            <li className="flex items-start gap-2.5">
+              <span className="mt-px text-text-muted [&_svg]:size-4">{icons.pin}</span>
+              {formatAddress()}
+            </li>
+            <li className="flex items-start gap-2.5">
+              <span className="mt-px text-text-muted [&_svg]:size-4">{icons.mail}</span>
+              <a href={`mailto:${siteConfig.email}`} className="transition-colors hover:text-text">
+                {siteConfig.email}
+              </a>
+            </li>
+            {siteConfig.phone && (
+              <li className="flex items-start gap-2.5">
+                <span className="mt-px text-text-muted [&_svg]:size-4">{icons.phone}</span>
+                <a
+                  href={`tel:${siteConfig.phone.replace(/[^\d+]/g, "")}`}
+                  className="transition-colors hover:text-text"
+                >
+                  {siteConfig.phone}
+                </a>
+              </li>
+            )}
+          </ul>
+        </address>
 
         <nav aria-label="Footer">
           <ul className="grid grid-cols-2 gap-x-12 gap-y-3 text-sm sm:grid-cols-3">

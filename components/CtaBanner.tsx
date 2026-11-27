@@ -11,7 +11,7 @@ type CtaBannerProps = {
 /** Glowing closing call to action, styled to match the homepage's final CTA. */
 export function CtaBanner({ title, subtitle, children }: CtaBannerProps) {
   return (
-    <Section className="pt-0 sm:pt-0">
+    <Section className="pt-0 sm:pt-0" data-sticky-cta-stop>
       <div className="relative overflow-hidden rounded-3xl border border-border-bright px-6 py-16 text-center sm:py-20">
         <div
           aria-hidden

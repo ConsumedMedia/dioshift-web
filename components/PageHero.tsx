@@ -12,7 +12,7 @@ export function PageHero({
   subtitle?: ReactNode;
 }) {
   return (
-    <section className="relative overflow-hidden pt-16 pb-12 sm:pt-24 sm:pb-16">
+    <section data-sticky-cta-start className="relative overflow-hidden pt-16 pb-12 sm:pt-24 sm:pb-16">
       <div
         aria-hidden
         className="pointer-events-none absolute top-[-30%] left-1/2 h-[500px] w-[800px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(79,142,255,0.14),transparent)]"

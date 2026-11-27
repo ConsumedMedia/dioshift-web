@@ -2,6 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { AdRequirements } from "@/components/AdRequirements";
+import { ComparisonTable } from "@/components/home/ComparisonTable";
+import { FaqPreview } from "@/components/home/FaqPreview";
+import { FinalCta } from "@/components/home/FinalCta";
+import { PositioningStrip } from "@/components/home/PositioningStrip";
+import { PricingCalculator } from "@/components/home/PricingCalculator";
+import { WhereYourAdRuns } from "@/components/home/WhereYourAdRuns";
 import { JsonLd } from "@/components/JsonLd";
 import { TvMockup } from "@/components/TvMockup";
 import { Button } from "@/components/ui/Button";
@@ -9,7 +15,6 @@ import { Card } from "@/components/ui/Card";
 import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, pageMetadata } from "@/lib/metadata";
-import { PACKAGES, formatImpressions, formatPrice } from "@/lib/packages";
 import { serviceJsonLd } from "@/lib/structured-data";
 
 export const metadata: Metadata = pageMetadata({
@@ -157,11 +162,15 @@ export default function HomePage() {
     <>
       <JsonLd data={serviceJsonLd()} />
       <Hero />
+      <PositioningStrip />
       <WhatIsStreaming />
+      <WhereYourAdRuns />
       <Benefits />
       <HowItWorks />
       <Pricing />
-      <AdRequirements />
+      <ComparisonTable />
+      <AdRequirements className="pt-0 sm:pt-0" />
+      <FaqPreview />
       <FinalCta />
     </>
   );
@@ -169,7 +178,7 @@ export default function HomePage() {
 
 function Hero() {
   return (
-    <section className="relative overflow-hidden pt-14 pb-20 sm:pt-20 sm:pb-28">
+    <section data-sticky-cta-start className="relative overflow-hidden pt-14 pb-14 sm:pt-20 sm:pb-20">
       <div
         aria-hidden
         className="pointer-events-none absolute top-[-20%] left-1/2 h-[600px] w-[900px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(79,142,255,0.16),transparent)]"
@@ -319,74 +328,11 @@ function Pricing() {
         title="Pick your monthly reach."
         subtitle="Every plan runs your :30 commercial across streaming apps and devices in your area. An impression is one showing of your ad on a screen."
       />
-      <ul className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {PACKAGES.map((pkg) => (
-          <li key={pkg.id}>
-            <Card highlight={pkg.popular} className="flex h-full flex-col">
-              <div className="flex items-center justify-between gap-3">
-                <h3 className="font-display text-base font-semibold text-text-dim">{pkg.label}</h3>
-                {pkg.popular && (
-                  <span className="rounded-full border border-accent/30 bg-accent-glow px-2.5 py-1 text-[11px] font-semibold text-accent-soft">
-                    Most Popular
-                  </span>
-                )}
-              </div>
-              <p className="mt-5 font-display text-3xl font-bold tracking-tight">
-                {formatImpressions(pkg.impressions)}
-              </p>
-              <p className="text-sm text-text-dim">impressions per month</p>
-
-              <div className="my-6 h-px bg-border" />
-
-              <p className="flex items-baseline gap-1.5">
-                <span className="font-display text-4xl font-bold tracking-tight">
-                  {formatPrice(pkg.monthlyPrice)}
-                </span>
-                <span className="text-sm text-text-dim">/month</span>
-              </p>
-
-              <Button
-                href={`/signup?package=${pkg.id}`}
-                variant={pkg.popular ? "primary" : "secondary"}
-                className="mt-7 w-full"
-                aria-label={`Choose the ${pkg.label} plan, ${formatImpressions(pkg.impressions)} impressions`}
-              >
-                Choose Plan
-              </Button>
-            </Card>
-          </li>
-        ))}
-      </ul>
+      <PricingCalculator />
       <p className="mt-10 text-center text-sm text-text-dim">
         All plans billed monthly. No long-term contract. Cancel anytime. We ask for{" "}
         <span className="whitespace-nowrap">30 days&apos;</span> notice.
       </p>
-    </Section>
-  );
-}
-
-function FinalCta() {
-  return (
-    <Section className="pt-0 sm:pt-0">
-      <div className="relative overflow-hidden rounded-3xl border border-border-bright px-6 py-16 text-center sm:py-20">
-        <div
-          aria-hidden
-          className="absolute inset-0 bg-[radial-gradient(70%_100%_at_50%_0%,rgba(79,142,255,0.22),transparent_70%),radial-gradient(60%_80%_at_100%_100%,rgba(167,139,250,0.14),transparent_70%)]"
-        />
-        <div className="relative">
-          <h2 className="mx-auto max-w-2xl font-display text-[1.7rem] leading-[1.1] font-extrabold tracking-tight text-balance sm:text-5xl">
-            Your customers are watching. Be on their screen.
-          </h2>
-          <p className="mx-auto mt-5 max-w-md text-text-dim">
-            Pick a plan, send your spot, and we&apos;ll take it from there.
-          </p>
-          <div className="mt-9 flex justify-center">
-            <Button href="/signup" size="lg">
-              Get Started
-            </Button>
-          </div>
-        </div>
-      </div>
     </Section>
   );
 }

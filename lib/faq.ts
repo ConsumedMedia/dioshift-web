@@ -47,9 +47,15 @@ export const FAQ_GROUPS: FaqGroup[] = [
       },
       {
         id: "different-from-regular-tv-or-youtube",
-        question: "How is this different from regular TV or YouTube ads?",
+        question: "How is this different from regular TV, YouTube or social media ads?",
         answer:
-          "Regular TV sells airtime by station and time slot, so you pay to reach everyone in range, including people who will never be your customers. Streaming lets you aim at the households you actually want. Online video ads mostly play on phones and computers, often next to a skip button. Streaming TV ads play full screen on the TV, during shows people sat down to watch.",
+          "Regular TV sells airtime by station and time slot, so you pay to reach everyone in range, including people who will never be your customers. Streaming lets you aim at the households you actually want. Online video and social media ads mostly play on phones, in a feed, with a skip button or a scroll right behind them. Streaming TV ads play full screen on the TV, during shows people sat down to watch.",
+      },
+      {
+        id: "worth-it-for-small-business",
+        question: "Is streaming TV worth it for a small business?",
+        answer:
+          "It puts your business on the biggest screen in the house, in front of households you choose, at a monthly price you control. It works best as a steady, always-on presence that builds recognition over time.",
       },
     ],
   },
@@ -79,6 +85,12 @@ export const FAQ_GROUPS: FaqGroup[] = [
         id: "how-much-does-it-cost",
         question: "How much does it cost?",
         answer: `Plans run from ${formatPrice(min.monthlyPrice)} to ${formatPrice(max.monthlyPrice)} a month, for ${formatImpressions(min.impressions)} to ${formatImpressions(max.impressions)} impressions. Every plan is priced at the same rate: ${formatPrice(CPM)} per 1,000 impressions.`,
+        links: [{ href: "/#pricing", label: "See all packages" }],
+      },
+      {
+        id: "do-i-need-a-big-budget",
+        question: "Do I need a big budget?",
+        answer: `No. Plans start at ${formatPrice(min.monthlyPrice)} a month, with no contract and no setup fee.`,
         links: [{ href: "/#pricing", label: "See all packages" }],
       },
       {
@@ -177,6 +189,21 @@ export const FAQ_GROUPS: FaqGroup[] = [
     ],
   },
 ];
+
+/** Every question, by id. */
+const FAQ_BY_ID = new Map(FAQ_GROUPS.flatMap((g) => g.items).map((item) => [item.id, item]));
+
+/**
+ * Pick questions by id, in the order given. Throws on an unknown id so a
+ * renamed question breaks the build instead of quietly disappearing.
+ */
+export function getFaqItems(ids: readonly string[]): FaqItem[] {
+  return ids.map((id) => {
+    const item = FAQ_BY_ID.get(id);
+    if (!item) throw new Error(`Unknown FAQ id: ${id}`);
+    return item;
+  });
+}
 
 /** schema.org FAQPage data, built from the same questions shown on the page. */
 export function faqJsonLd() {

@@ -1,0 +1,101 @@
+/*
+ * Motion for the hero TV, the targeting map and the "How it works" stepper.
+ *
+ * Every looping animation carries .anim-loop, which keeps it paused until an
+ * <InView> ancestor marks itself data-playing (on screen). The rules below
+ * use animation longhands on purpose: the `animation` shorthand would reset
+ * animation-play-state and undo the pause.
+ *
+ * Under reduced motion all of it is switched off and each element shows its
+ * static state.
+ */
+
+.anim-loop {
+  animation-play-state: paused;
+  animation-iteration-count: infinite;
+}
+[data-playing] .anim-loop {
+  animation-play-state: running;
+}
+
+/* ---------- Sample ad: frames crossfade, progress bar counts down ---------- */
+
+/* Set on the screen: --ad-cycle (total seconds). Per frame: --ad-delay. */
+.ad-frame {
+  animation-name: ad-frame;
+  animation-duration: var(--ad-cycle, 14s);
+  animation-timing-function: ease-in-out;
+  animation-delay: var(--ad-delay, 0s);
+}
+.ad-frame:not(:first-child) {
+  opacity: 0;
+}
+
+/*
+ * Each frame owns a quarter of the cycle: it fades in, holds, and fades out
+ * just before the next one fades in, so two frames never overlap. Assumes
+ * four frames (lib/sample-ad.ts).
+ */
+@keyframes ad-frame {
+  0% { opacity: 0; transform: translateY(3%); }
+  4% { opacity: 1; transform: none; }
+  21% { opacity: 1; transform: none; }
+  24.5% { opacity: 0; transform: translateY(-3%); }
+  100% { opacity: 0; transform: translateY(-3%); }
+}
+
+.ad-progress {
+  transform-origin: left;
+  transform: scaleX(0.25);
+  animation-name: ad-progress-fill;
+  animation-duration: var(--ad-cycle, 14s);
+  animation-timing-function: linear;
+}
+@keyframes ad-progress-fill {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+/* ---------- Targeting map ---------- */
+
+.map-ring-pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+  animation-name: map-ring-pulse;
+  animation-duration: 3.6s;
+  animation-timing-function: ease-out;
+}
+@keyframes map-ring-pulse {
+  0% { opacity: 0.55; transform: scale(0.92); }
+  70% { opacity: 0; transform: scale(1.14); }
+  100% { opacity: 0; transform: scale(1.14); }
+}
+
+/* The lit layer of each ZIP dot. The static state is all lit. */
+.map-zip-lit {
+  opacity: 1;
+}
+.map-zip-lit.anim-loop {
+  opacity: 0;
+  animation-name: map-zip;
+  animation-duration: 7s;
+  animation-timing-function: ease-in-out;
+  animation-delay: calc(var(--i, 0) * 0.45s);
+}
+@keyframes map-zip {
+  0% { opacity: 0; }
+  6% { opacity: 1; }
+  62% { opacity: 1; }
+  74% { opacity: 0; }
+  100% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-loop {
+    animation: none !important;
+  }
+  .map-zip-lit.anim-loop {
+    opacity: 1;
+  }
+}

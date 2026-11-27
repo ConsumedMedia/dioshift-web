@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import { TargetingMap } from "@/components/visuals/TargetingMap";
 import type { FaqGroup } from "@/lib/faq";
 import { pageMetadata } from "@/lib/metadata";
 import { formatPrice, getPackageRange } from "@/lib/packages";
@@ -143,7 +144,7 @@ export default function ColumbusPage() {
               ))}
             </ul>
           </div>
-          <RadiusGraphic />
+          <TargetingMap size="lg" />
         </div>
       </Section>
 
@@ -253,77 +254,5 @@ function TagList({ items, highlight }: { items: string[]; highlight?: boolean })
         </li>
       ))}
     </ul>
-  );
-}
-
-/** Points inside the ring are "targeted". Purely decorative. */
-const ZIP_DOTS: { x: number; y: number; inside: boolean }[] = [
-  { x: 150, y: 160, inside: true },
-  { x: 255, y: 150, inside: true },
-  { x: 245, y: 250, inside: true },
-  { x: 145, y: 245, inside: true },
-  { x: 205, y: 120, inside: true },
-  { x: 290, y: 205, inside: true },
-  { x: 115, y: 200, inside: true },
-  { x: 195, y: 285, inside: true },
-  { x: 55, y: 80, inside: false },
-  { x: 345, y: 70, inside: false },
-  { x: 360, y: 320, inside: false },
-  { x: 40, y: 330, inside: false },
-  { x: 330, y: 380, inside: false },
-  { x: 80, y: 375, inside: false },
-  { x: 375, y: 180, inside: false },
-];
-
-/** A radius ring over a few zip-code dots, to show local targeting. Decorative. */
-function RadiusGraphic() {
-  return (
-    <div aria-hidden className="relative mx-auto w-full max-w-md">
-      <svg viewBox="0 0 400 400" className="h-auto w-full" fill="none">
-        <defs>
-          <radialGradient id="radius-fill" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#4f8eff" stopOpacity="0.28" />
-            <stop offset="100%" stopColor="#4f8eff" stopOpacity="0.04" />
-          </radialGradient>
-        </defs>
-
-        {/* Faint grid */}
-        {Array.from({ length: 9 }, (_, i) => (i + 1) * 40).map((v) => (
-          <g key={v} stroke="rgba(255,255,255,0.05)">
-            <line x1={v} y1="0" x2={v} y2="400" />
-            <line x1="0" y1={v} x2="400" y2={v} />
-          </g>
-        ))}
-
-        {/* A few "roads" */}
-        <path d="M0 210 C 120 190, 260 230, 400 196" stroke="rgba(255,255,255,0.09)" strokeWidth="3" />
-        <path d="M188 0 C 210 140, 180 260, 214 400" stroke="rgba(255,255,255,0.09)" strokeWidth="3" />
-        <path d="M30 40 L 370 370" stroke="rgba(255,255,255,0.05)" strokeWidth="2" />
-
-        {/* Radius */}
-        <circle cx="200" cy="200" r="120" fill="url(#radius-fill)" />
-        <circle cx="200" cy="200" r="120" stroke="#7eb3ff" strokeOpacity="0.7" strokeWidth="1.5" strokeDasharray="6 6" />
-        <circle cx="200" cy="200" r="60" stroke="#7eb3ff" strokeOpacity="0.25" strokeWidth="1" />
-
-        {/* Radius line */}
-        <line x1="200" y1="200" x2="320" y2="200" stroke="#7eb3ff" strokeOpacity="0.5" strokeWidth="1" />
-
-        {/* Zip-code dots */}
-        {ZIP_DOTS.map((d) =>
-          d.inside ? (
-            <g key={`${d.x}-${d.y}`}>
-              <circle cx={d.x} cy={d.y} r="9" fill="#4f8eff" fillOpacity="0.2" />
-              <circle cx={d.x} cy={d.y} r="4" fill="#7eb3ff" />
-            </g>
-          ) : (
-            <circle key={`${d.x}-${d.y}`} cx={d.x} cy={d.y} r="3.5" fill="rgba(255,255,255,0.18)" />
-          ),
-        )}
-
-        {/* Center pin */}
-        <circle cx="200" cy="200" r="14" fill="#0a0b0f" stroke="#a78bfa" strokeWidth="2" />
-        <circle cx="200" cy="200" r="5" fill="#a78bfa" />
-      </svg>
-    </div>
   );
 }

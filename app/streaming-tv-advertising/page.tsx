@@ -8,6 +8,7 @@ import { JsonLd } from "@/components/JsonLd";
 import { PageHero } from "@/components/PageHero";
 import { Button } from "@/components/ui/Button";
 import { Section } from "@/components/ui/Section";
+import { TargetingMap } from "@/components/visuals/TargetingMap";
 import { industryPath, PUBLISHED_INDUSTRIES } from "@/lib/industries";
 import { contentCategories, devices } from "@/lib/inventory";
 import { pageMetadata } from "@/lib/metadata";
@@ -250,6 +251,9 @@ const sections: GuideSection[] = [
             </>,
           ]}
         />
+        <div className="mt-8 rounded-2xl border border-border bg-bg/60 px-4 py-6 sm:px-8">
+          <TargetingMap size="md" />
+        </div>
         <P>
           Start with location. There&apos;s no point reaching people you can&apos;t serve. If
           you&apos;re in Central Ohio, our{" "}

@@ -1,4 +1,19 @@
 @import "tailwindcss";
+@import "./visuals.css";
+
+/*
+ * lit: styles for the final state of a stepper step. Applies once an <InView
+ * mode="once"> ancestor has entered view, and always under reduced motion,
+ * so those visitors see everything finished at once.
+ */
+@custom-variant lit {
+  &:where([data-lit] *) {
+    @slot;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    @slot;
+  }
+}
 
 /*
  * Dioshift palette, carried over from the original Dioshift app.

@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import type { ReactNode } from "react";
 import { AdRequirements } from "@/components/AdRequirements";
 import { CtaBanner } from "@/components/CtaBanner";
 import { PageHero } from "@/components/PageHero";
@@ -8,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import { HowItWorksStepper, type StepperStep } from "@/components/visuals/HowItWorksStepper";
 import { pageMetadata } from "@/lib/metadata";
 import { JsonLd } from "@/components/JsonLd";
 import { breadcrumbJsonLd } from "@/lib/structured-data";
@@ -28,11 +28,10 @@ export const metadata: Metadata = pageMetadata({
 const { min, max } = getPackageRange();
 const popularImpressions = formatImpressions(POPULAR_PACKAGE.impressions);
 
-type Step = { title: string; body: ReactNode; extra?: ReactNode };
-
-const steps: Step[] = [
+const steps: StepperStep[] = [
   {
     title: "Choose your monthly package",
+    visual: "plan",
     body: "Pick an impression level that fits your budget. Bigger plans put your ad in front of more screens each month.",
     extra: (
       <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3 rounded-xl border border-border bg-bg/60 px-5 py-4">
@@ -59,6 +58,7 @@ const steps: Step[] = [
   },
   {
     title: "Tell us who to reach",
+    visual: "target",
     body: "Share your service area and the kind of customers you want. We aim your ad at the households that matter to your business.",
     extra: (
       <ul className="mt-5 grid gap-2 sm:grid-cols-3">
@@ -77,6 +77,7 @@ const steps: Step[] = [
   },
   {
     title: "Send your commercial",
+    visual: "upload",
     body: (
       <>
         A :30 second, 1080p spot. MP4 recommended. Don&apos;t have one? Check the box on the
@@ -86,6 +87,7 @@ const steps: Step[] = [
   },
   {
     title: "We launch and run it",
+    visual: "launch",
     body: "Your ad plays full screen inside streaming apps on smart TVs and streaming devices, delivered to the audience you chose.",
   },
 ];
@@ -100,35 +102,9 @@ export default function HowItWorksPage() {
         subtitle="No rate cards. No station reps. No paying for a whole market to reach a few neighborhoods. Here's exactly how your business gets on TV."
       />
 
-      <Section className="pt-4 sm:pt-8" containerClassName="max-w-3xl">
+      <Section className="pt-4 sm:pt-8" containerClassName="max-w-5xl">
         <h2 className="sr-only">The four steps</h2>
-        <ol className="relative">
-          {steps.map((step, i) => {
-            const last = i === steps.length - 1;
-            return (
-              <li key={step.title} className="relative flex gap-5 pb-8 last:pb-0 sm:gap-7">
-                {/* Number and connecting line */}
-                <div className="relative flex flex-col items-center">
-                  <span className="relative z-10 flex size-11 shrink-0 items-center justify-center rounded-full border border-accent/40 bg-surface font-display text-sm font-bold text-accent-soft shadow-[0_0_24px_-4px_rgba(79,142,255,0.55)]">
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  {!last && (
-                    <span
-                      aria-hidden
-                      className="absolute top-11 -bottom-8 w-px bg-linear-to-b from-accent/50 to-border-bright"
-                    />
-                  )}
-                </div>
-
-                <Card className="min-w-0 flex-1">
-                  <h3 className="font-display text-xl font-semibold">{step.title}</h3>
-                  <p className="mt-2 text-[15px] leading-relaxed text-text-dim">{step.body}</p>
-                  {step.extra}
-                </Card>
-              </li>
-            );
-          })}
-        </ol>
+        <HowItWorksStepper steps={steps} />
       </Section>
 
       <Section className="pt-0 sm:pt-4">

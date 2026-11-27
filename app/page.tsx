@@ -10,11 +10,12 @@ import { PositioningStrip } from "@/components/home/PositioningStrip";
 import { PricingCalculator } from "@/components/home/PricingCalculator";
 import { WhereYourAdRuns } from "@/components/home/WhereYourAdRuns";
 import { JsonLd } from "@/components/JsonLd";
-import { TvMockup } from "@/components/TvMockup";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import { HeroMedia } from "@/components/visuals/HeroMedia";
+import { HowItWorksStepper, type StepperStep } from "@/components/visuals/HowItWorksStepper";
 import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, pageMetadata } from "@/lib/metadata";
 import { serviceJsonLd } from "@/lib/structured-data";
 
@@ -141,18 +142,21 @@ const benefits = [
   },
 ];
 
-const steps = [
+const steps: StepperStep[] = [
   {
     title: "Pick your package",
     body: "Choose a monthly impression level that fits your budget.",
+    visual: "plan",
   },
   {
     title: "Send your commercial",
     body: "Upload your :30 spot. No commercial yet? Tell us and we'll talk through options.",
+    visual: "upload",
   },
   {
     title: "We target and launch",
     body: "We set up your targeting, place your ad across streaming apps and devices, and get it running.",
+    visual: "target",
   },
 ];
 
@@ -215,7 +219,7 @@ function Hero() {
           </p>
         </div>
 
-        <TvMockup />
+        <HeroMedia />
       </div>
     </section>
   );
@@ -321,19 +325,7 @@ function HowItWorks() {
         title="Three steps. Then you're on TV."
         subtitle="We handle the targeting and placement. You run your business."
       />
-      <ol className="mt-14 grid gap-4 md:grid-cols-3">
-        {steps.map((s, i) => (
-          <li key={s.title}>
-            <Card className="h-full">
-              <span className="font-display text-sm font-bold text-accent-soft">
-                {String(i + 1).padStart(2, "0")}
-              </span>
-              <h3 className="mt-4 font-display text-xl font-semibold">{s.title}</h3>
-              <p className="mt-2 text-[15px] leading-relaxed text-text-dim">{s.body}</p>
-            </Card>
-          </li>
-        ))}
-      </ol>
+      <HowItWorksStepper steps={steps} className="mx-auto mt-14 max-w-4xl" />
       <div className="mt-10 text-center">
         <Link
           href="/how-it-works"

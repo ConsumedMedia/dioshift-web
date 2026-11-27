@@ -10,6 +10,7 @@ const PREFIX = "dioshift-web:rl";
 const LIMITS = {
   contact: { requests: 5, window: "10 m" },
   signup: { requests: 10, window: "10 m" },
+  adminLogin: { requests: 5, window: "10 m" },
 } as const;
 
 export type RateLimitName = keyof typeof LIMITS;
@@ -51,10 +52,29 @@ function getLimiter(name: RateLimitName): Ratelimit | null {
   return limiter;
 }
 
-/** Client IP from the first x-forwarded-for value, or "unknown". */
-export function clientIp(request: Request): string {
-  const first = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+/** Client IP from the first x-forwarded-for value, or "unknown". Takes request headers or a whole Request. */
+export function clientIp(source: Request | Headers): string {
+  const headers = source instanceof Headers ? source : source.headers;
+  const first = headers.get("x-forwarded-for")?.split(",")[0]?.trim();
   return first || "unknown";
+}
+
+/**
+ * Checks the limit for one caller (usually an IP). Resolves true when the
+ * request may go ahead. For Server Actions, which have no Request object.
+ *
+ * Fails open, like rateLimit().
+ */
+export async function isWithinRateLimit(name: RateLimitName, key: string): Promise<boolean> {
+  const limiter = getLimiter(name);
+  if (!limiter) return true;
+  try {
+    const { success } = await limiter.limit(key);
+    return success;
+  } catch (err) {
+    console.error(`[rate-limit] Check failed for "${name}", allowing the request:`, err);
+    return true;
+  }
 }
 
 /**

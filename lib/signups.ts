@@ -9,6 +9,9 @@ import { getSupabaseAdmin } from "@/lib/supabase-admin";
  */
 export type SignupStatus = "pending_payment" | "active" | "past_due" | "canceled";
 
+/** Where the campaign itself is, set by an admin. Separate from billing (status). */
+export type CampaignStatus = "not_started" | "waiting_on_creative" | "ready" | "live" | "paused" | "ended";
+
 /** One row of public.streaming_signups (see supabase/streaming_signups.sql). */
 export interface SignupRow {
   id: string;
@@ -54,6 +57,12 @@ export interface SignupRow {
   stripe_checkout_session_id: string | null;
   paid_at: string | null;
   last_payment_failed_at: string | null;
+
+  /** Added 2026-11-27 (supabase/2026-11-27_admin.sql). */
+  campaign_status: CampaignStatus;
+  launched_at: string | null;
+  cancel_requested_at: string | null;
+  cancel_effective_at: string | null;
 }
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

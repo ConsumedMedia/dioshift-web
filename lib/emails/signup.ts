@@ -1,5 +1,6 @@
 import "server-only";
 import { escapeHtml, getResend } from "@/lib/email";
+import { P, emailLayout as layout } from "@/lib/emails/layout";
 import { missingEnv } from "@/lib/env";
 import { formatImpressions, formatPrice, getPackageById } from "@/lib/packages";
 import type { SignupRow } from "@/lib/signups";
@@ -132,29 +133,6 @@ function sectionHtml(title: string, rows: Rows): string {
 
 function sectionText(title: string, rows: Rows): string {
   return [title.toUpperCase(), ...rows.map(([label, value]) => `${label}: ${cellText(value)}`)].join("\n");
-}
-
-const P = "margin:0 0 14px;font-size:15px;line-height:1.6;color:#111827;";
-
-function layout({ heading, body, footer }: { heading: string; body: string; footer: string }): string {
-  return `<!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-  </head>
-  <body style="margin:0;padding:24px;background:#f5f6f8;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
-    <div style="max-width:600px;margin:0 auto;background:#ffffff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;">
-      <div style="padding:20px 24px;background:#0a0b0f;color:#f0f0f5;font-size:16px;font-weight:700;">
-        ${escapeHtml(heading)}
-      </div>
-      <div style="padding:16px 12px;">${body}</div>
-      <div style="padding:14px 24px;border-top:1px solid #e5e7eb;font-size:12px;line-height:1.6;color:#9ca3af;">
-        ${footer}
-      </div>
-    </div>
-  </body>
-</html>`;
 }
 
 function stripeLinks(ids: { customerId?: string | null; subscriptionId?: string | null; invoiceId?: string | null }): Rows {

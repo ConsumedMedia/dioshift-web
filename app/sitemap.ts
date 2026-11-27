@@ -6,8 +6,8 @@ import { absoluteUrl } from "@/lib/site-config";
 type Entry = MetadataRoute.Sitemap[number];
 
 /**
- * Every public page. /signup/success, /signup/resume and /api are left out
- * on purpose: they're noindex and blocked in robots.txt.
+ * Every public page. /signup/success, /signup/resume, /admin and /api are
+ * left out on purpose: they're noindex and blocked in robots.txt.
  */
 const PAGES: Array<{ path: string } & Omit<Entry, "url">> = [
   { path: "/", changeFrequency: "weekly", priority: 1 },

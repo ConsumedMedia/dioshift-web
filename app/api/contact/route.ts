@@ -2,6 +2,7 @@ import { z } from "zod";
 import { HONEYPOT_FIELD, contactSchema, type ContactData } from "@/lib/contact-schema";
 import { escapeHtml, getResend, missingEnv } from "@/lib/email";
 import { rateLimit } from "@/lib/rate-limit";
+import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 const REQUIRED_ENV = ["RESEND_API_KEY", "CONTACT_FROM_EMAIL", "CONTACT_TO_EMAIL"] as const;
 
@@ -41,6 +42,10 @@ export async function POST(request: Request) {
     );
   }
 
+  // Keep a copy for /admin/messages. A failure here is logged and never
+  // changes what the visitor sees: the email below is still sent.
+  await saveMessage(parsed.data);
+
   const missing = missingEnv(REQUIRED_ENV);
   if (missing.length > 0) {
     console.error(
@@ -70,6 +75,21 @@ export async function POST(request: Request) {
   }
 
   return json({ ok: true });
+}
+
+async function saveMessage(data: ContactData): Promise<void> {
+  try {
+    const { error } = await getSupabaseAdmin().from("contact_messages").insert({
+      name: data.name,
+      business_name: data.businessName,
+      email: data.email,
+      phone: data.phone || null,
+      message: data.message,
+    });
+    if (error) console.error("[contact] Could not save the message to contact_messages:", error.message);
+  } catch (err) {
+    console.error("[contact] Could not save the message to contact_messages:", err);
+  }
 }
 
 function rows(data: ContactData): Array<[string, string]> {

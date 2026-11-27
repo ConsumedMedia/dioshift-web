@@ -1,13 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Syne } from "next/font/google";
-import { Analytics } from "@vercel/analytics/next";
-import { Footer } from "@/components/Footer";
-import { JsonLd } from "@/components/JsonLd";
-import { Navbar } from "@/components/Navbar";
-import { StickyMobileCta } from "@/components/StickyMobileCta";
 import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, TITLE_SUFFIX } from "@/lib/metadata";
 import { siteConfig } from "@/lib/site-config";
-import { siteJsonLd } from "@/lib/structured-data";
 import "./globals.css";
 
 // One family for headings and body text. Variable font, so every weight is in one file.
@@ -64,17 +58,16 @@ export const viewport: Viewport = {
   colorScheme: "dark",
 };
 
+/**
+ * Shared by the public site and the admin. The public site's navbar, footer
+ * and structured data live in app/(site)/layout.tsx; the admin has its own
+ * chrome in app/admin and stays out of analytics.
+ */
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${geist.variable} ${syne.variable} h-full antialiased`}>
       <body className="relative flex min-h-full flex-col">
-        <JsonLd data={siteJsonLd()} />
-        <Navbar />
-        <main className="relative z-10 flex-1">{children}</main>
-        <Footer />
-        <StickyMobileCta />
-        {/* Cookieless page views. No ad pixels, per the privacy policy. */}
-        <Analytics />
+        {children}
       </body>
     </html>
   );
